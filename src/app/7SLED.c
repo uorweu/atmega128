@@ -27,11 +27,15 @@ static const uint8_t SEG_TABLE[16] = {
 #define SEG_BLANK 0x00  // All segments OFF for Common Cathode (0V)
 
 // Display buffer initialized to default: "102026"
-// [0] = LED 1 (leftmost, Q5) ... [5] = LED 6 (rightmost, Q0)
+// [0] = LED 1 (leftmost, Q0) ... [5] = LED 6 (rightmost, Q5)
 static uint8_t display_buffer[SEG7_NUM_DIGITS] = {1, 0, 2, 0, 2, 6};
 static uint8_t current_digit = 0;
+static uint8_t dp_mask = 0x00;
 
 #include <avr/interrupt.h>
+#include "clock.h"
+
+static uint16_t timer0_tick_count = 0;
 
 void seg7_init(void) {
     // Hardware memory interface writes to CSEL3 and CSEL4:
@@ -50,6 +54,13 @@ void seg7_init(void) {
 
 ISR(TIMER0_COMP_vect) {
     seg7_update();
+
+    // 500 interrupts @ 2.0 ms = 1000 ms (exact 1 second tick for clock)
+    timer0_tick_count++;
+    if (timer0_tick_count >= 500) {
+        timer0_tick_count = 0;
+        clock_tick_1s();
+    }
 }
 
 void seg7_set_digit(uint8_t pos, uint8_t value) {
@@ -71,6 +82,10 @@ void seg7_set_number(uint32_t num) {
     }
 }
 
+void seg7_set_dp_mask(uint8_t mask) {
+    dp_mask = mask;
+}
+
 void seg7_update(void) {
     // 1. Blanking: Turn off all transistors first (via CSEL3) to prevent ghosting
     LED_7CONTROL = 0x00;
@@ -78,6 +93,12 @@ void seg7_update(void) {
     // 2. Load the segment pattern for the active digit (via CSEL4)
     uint8_t val = display_buffer[current_digit];
     uint8_t seg_pattern = (val < 16) ? SEG_TABLE[val] : SEG_BLANK;
+
+    // 2b. Turn on Decimal Point if enabled for this digit
+    if (dp_mask & (1 << current_digit)) {
+        seg_pattern |= 0x80; // Bit 7 is DP (driven through R81 / Q7)
+    }
+
     LED_7DATA = seg_pattern;
 
     // 3. Enable the transistor for the current position (via CSEL3):

@@ -6,6 +6,7 @@
 #include "lcd.h"
 #include "buttons.h"
 #include "7SLED.h"
+#include "relay.h"
 #include "menu.h"
 
 int main(void) {
@@ -16,6 +17,7 @@ int main(void) {
 
     // 2. Initialize Peripherals
     lcd_init();     // Initialize LCD (HD44780 8-bit mode)
+    relay_init();   // Initialize Relays (all 4 relays OFF)
     seg7_init();    // Initialize 7-segment display (turn all digits off)
     menu_init();    // Build linked-list menu tree & show "HI YOU"
 
@@ -27,7 +29,6 @@ int main(void) {
         // Update menu navigation, blinking header, and LCD display
         menu_update();
         // (7-segment LED multiplexing is now handled automatically by Timer0 ISR at 500 Hz)
-
         // 10ms loop tick
         _delay_ms(10);
     }
