@@ -22,7 +22,6 @@
 #define CSEL15 15
 
 // BUTTONS macro
-#define READ_BUTTONS (*(uint8_t *)(&BUTTON_REG_BITS)) = *(volatile uint8_t *)(EXTERNAL_MEM + CSEL0)
 typedef struct {
   uint8_t LEFT: 1;
   uint8_t RIGHT: 1;
@@ -34,6 +33,9 @@ typedef struct {
   uint8_t BTN3: 1;
 } BUTTON_REG_BITS;
 
+extern BUTTON_REG_BITS buttons;
+
+#define READ_BUTTONS (*(uint8_t *)(&buttons)) = *(volatile uint8_t *)(EXTERNAL_MEM + CSEL0)
 // LCD 
 #define LCD_DATA_REG (*(volatile uint8_t *)(EXTERNAL_MEM + CSEL1))
 #define LCD_CMD_REG (*(volatile uint8_t *)(EXTERNAL_MEM + CSEL2))
