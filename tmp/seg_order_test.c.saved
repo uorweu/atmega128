@@ -1,0 +1,59 @@
+// Static diagnostic with board-confirmed select addresses; no timer ISRs.
+#include "define.h"
+#include "lcd.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+
+static void blank_digits(void) {
+    LED_7CONTROL = 0;
+    LED_7DATA = 0;
+}
+
+int main(void) {
+    cli();
+    MCUCR |= (1 << SRE);
+    blank_digits();
+    lcd_init();
+    lcd_set_cursor(0, 0);
+    lcd_send_string("7SEG STATIC TEST");
+    // Observed mapping; bits 6/7 still need upper-right/upper-left identification.
+    const char *segment_names[8] = {"dp", "g", "a", "e", "d", "c", "b or f?", "b or f?"};
+    while (1) {
+        // One digit at a time: a..g ON, decimal point OFF.
+        for (uint8_t digit = 0; digit < 6; digit++) {
+            blank_digits();
+            lcd_set_cursor(1, 0);
+            lcd_send_string("DIGIT: ");
+            lcd_send_data('1' + digit);
+            lcd_send_string("  PATTERN: 8");
+            lcd_set_cursor(2, 0);
+            lcd_send_string("Q0..Q5: CHECK ORDER ");
+            lcd_set_cursor(3, 0);
+            lcd_send_string("DATA=FE  DP OFF     ");
+            LED_7DATA = 0xFE; // DP is bit 0 on this board; all seven segments HIGH.
+            _delay_us(10);
+            LED_7CONTROL = (1 << digit);
+            _delay_ms(2000);
+        }
+        // Walking bit on Q0's digit: identify physical segment bit mapping.
+        for (uint8_t bit = 0; bit < 8; bit++) {
+            blank_digits();
+            lcd_set_cursor(1, 0);
+            lcd_send_string("Q0 DIGIT, BIT: ");
+            lcd_send_data('0' + bit);
+            lcd_send_string("    ");
+            lcd_set_cursor(2, 0);
+            lcd_send_string("                    ");
+            lcd_set_cursor(2, 0);
+            lcd_send_string("SEG: ");
+            lcd_send_string(segment_names[bit]);
+            lcd_set_cursor(3, 0);
+            lcd_send_string("ONE SEGMENT ONLY    ");
+            LED_7DATA = (1 << bit);
+            _delay_us(10);
+            LED_7CONTROL = 0x01;
+            _delay_ms(2000);
+        }
+    }
+}

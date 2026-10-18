@@ -5,7 +5,6 @@
 #include "relay.h"
 #include "clock.h"
 #include "define.h"
-#include <util/delay.h>
 #include <stddef.h>
 
 // Forward declarations of action functions
@@ -53,7 +52,7 @@ MenuItem Relay_Item3 = {"3. ALL RELAYS ON",  NULL, NULL, NULL, action_relay_all_
 MenuItem Relay_Item4 = {"4. ALL RELAYS OFF", NULL, NULL, NULL, action_relay_all_off};
 
 // System Menu Items
-MenuItem Sys_Item1 = {"1. VERSION 1.0",    NULL, NULL, NULL, action_version};
+MenuItem Sys_Item1 = {"1. VERSION 2.0",    NULL, NULL, NULL, action_version};
 MenuItem Sys_Item2 = {"2. ATMEGA128A MCU", NULL, NULL, NULL, action_about};
 
 // ==========================================
@@ -127,6 +126,11 @@ void menu_init(void) {
     active_action_func = NULL;
     welcome_char_idx = 0;
     welcome_timer = 0;
+
+    blink_counter = 0;
+    blink_on = 1;
+    action_tick = 0;
+    count_val = 0;
 
     // Non-blocking start: clear display and let menu_update type smoothly
     lcd_clear();
@@ -238,9 +242,10 @@ void menu_back(void) {
 // ==========================================
 void menu_update(void) {
     uint8_t btns = button_triggered();
+    uint8_t pressed = button_pressed();
 
     // 1. GLOBAL SHORTCUT: BTN1 is the EXIT button -> Returns to Welcome Screen from ANYWHERE
-    if (btns & BTN_BIT_1) {
+    if ((pressed & BTN_BIT_1) && current_state != STATE_WELCOME) {
         if (current_state == STATE_ADJUST_CLOCK) {
             clock_start(); // ensure clock keeps ticking if canceled
         }
@@ -258,7 +263,7 @@ void menu_update(void) {
 
     // 2. STATE_WELCOME: Non-blocking typewriter animation + instant button wake-up
     if (current_state == STATE_WELCOME) {
-        if (btns != 0) {
+        if (pressed != 0) {
             current_state = STATE_MENU;
             current_menu = &MainMenu;
             current_item = current_menu->first_item;
@@ -325,7 +330,7 @@ void menu_update(void) {
             adjust_update_7seg();
         }
         // --- Confirm: GO saves time and returns to menu ---
-        else if (btns & BTN_BIT_GO) {
+        else if (pressed & BTN_BIT_GO) {
             uint8_t h = adjust_digits[0] * 10 + adjust_digits[1];
             uint8_t m = adjust_digits[2] * 10 + adjust_digits[3];
             uint8_t s = adjust_digits[4] * 10 + adjust_digits[5];
@@ -353,7 +358,7 @@ void menu_update(void) {
 
     // 4. STATE_RUNNING: Inside an active action
     if (current_state == STATE_RUNNING) {
-        if (btns & BTN_BIT_LEFT) {
+        if (pressed & BTN_BIT_LEFT) {
             // LEFT exits the action and returns to the menu!
             current_state = STATE_MENU;
             active_action_func = NULL;
@@ -381,10 +386,10 @@ void menu_update(void) {
         else if (btns & BTN_BIT_UP) {
             menu_up();
         }
-        else if ((btns & BTN_BIT_GO) || (btns & BTN_BIT_RIGHT)) {
+        else if ((pressed & BTN_BIT_GO) || (pressed & BTN_BIT_RIGHT)) {
             menu_enter();
         }
-        else if (btns & BTN_BIT_LEFT) {
+        else if (pressed & BTN_BIT_LEFT) {
             menu_back();
         }
 
@@ -546,9 +551,9 @@ static void action_relay_0_2(void) {
     lcd_set_cursor(0, 0);
     lcd_send_string("=== RELAYS 0 & 2 ===");
     lcd_set_cursor(1, 0);
-    lcd_send_string("RL0: [ ON ] RL1:[OFF]");
+    lcd_send_string("RL0:ON   RL1:OFF    ");
     lcd_set_cursor(2, 0);
-    lcd_send_string("RL2: [ ON ] RL3:[OFF]");
+    lcd_send_string("RL2:ON   RL3:OFF    ");
     lcd_set_cursor(3, 0);
     lcd_send_string("LEFT:Back     1:Exit");
 }
@@ -559,9 +564,9 @@ static void action_relay_1_3(void) {
     lcd_set_cursor(0, 0);
     lcd_send_string("=== RELAYS 1 & 3 ===");
     lcd_set_cursor(1, 0);
-    lcd_send_string("RL0:[OFF]   RL1:[ ON]");
+    lcd_send_string("RL0:OFF  RL1:ON     ");
     lcd_set_cursor(2, 0);
-    lcd_send_string("RL2:[OFF]   RL3:[ ON]");
+    lcd_send_string("RL2:OFF  RL3:ON     ");
     lcd_set_cursor(3, 0);
     lcd_send_string("LEFT:Back     1:Exit");
 }
@@ -572,9 +577,9 @@ static void action_relay_all_on(void) {
     lcd_set_cursor(0, 0);
     lcd_send_string("=== ALL RELAYS ON ==");
     lcd_set_cursor(1, 0);
-    lcd_send_string("RL0: [ ON ] RL1:[ ON]");
+    lcd_send_string("RL0:ON   RL1:ON     ");
     lcd_set_cursor(2, 0);
-    lcd_send_string("RL2: [ ON ] RL3:[ ON]");
+    lcd_send_string("RL2:ON   RL3:ON     ");
     lcd_set_cursor(3, 0);
     lcd_send_string("LEFT:Back     1:Exit");
 }
@@ -585,9 +590,9 @@ static void action_relay_all_off(void) {
     lcd_set_cursor(0, 0);
     lcd_send_string("=== ALL RELAYS OFF =");
     lcd_set_cursor(1, 0);
-    lcd_send_string("RL0:[OFF]   RL1:[OFF]");
+    lcd_send_string("RL0:OFF  RL1:OFF    ");
     lcd_set_cursor(2, 0);
-    lcd_send_string("RL2:[OFF]   RL3:[OFF]");
+    lcd_send_string("RL2:OFF  RL3:OFF    ");
     lcd_set_cursor(3, 0);
     lcd_send_string("LEFT:Back     1:Exit");
 }

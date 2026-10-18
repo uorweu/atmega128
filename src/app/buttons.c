@@ -28,10 +28,12 @@ void button_update(void) {
   for (uint8_t i = 0; i < 8; i++) {
     uint8_t bit = (1 << i);
     if (raw & bit) {
-      if (hold_cnt[i] < 255) hold_cnt[i]++;
+      hold_cnt[i]++;
       if (hold_cnt[i] >= HOLD_THRESHOLD) {
         if ((hold_cnt[i] - HOLD_THRESHOLD) % HOLD_REPEAT_RATE == 0) {
           held_event |= bit;
+          // Restart the interval so even a long hold continues repeating.
+          hold_cnt[i] = HOLD_THRESHOLD - HOLD_REPEAT_RATE;
         }
       }
     } else {

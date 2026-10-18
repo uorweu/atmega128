@@ -1,6 +1,8 @@
 #ifndef BUTTONS_H
 #define BUTTONS_H
 
+#include <stdint.h>
+
 // debine buttons
 #define BUTTON_LEFT 0
 #define BUTTON_RIGHT 1

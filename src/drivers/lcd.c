@@ -1,42 +1,53 @@
 #include "define.h"
 #include "lcd.h"
+
 #include <avr/io.h>
 #include <util/delay.h>
 
 #define PORTG_REG (*(volatile uint8_t *)0x65)
 #define DDRG_REG (*(volatile uint8_t *)0x64)
-#define PG3 3 
+#define PG3 3
+#define PG4 4
 
 #include <avr/interrupt.h>
 
 void lcd_send_cmd(uint8_t cmd) {
   uint8_t sreg = SREG;
-  cli();                      // Disable interrupts: protect A0 (RS) and external bus
-  LCD_CMD_REG = cmd;          // Address 0x1102 (A0=0 -> RS=0, CSEL2 active)
+  cli();                      // Protect RS, latched data, and the E pulse
+  PORTG_REG &= ~(1 << PG4);   // Dedicated LCD RS LOW: command
+  io_bus_write(EXTERNAL_MEM + CSEL2, cmd);          // CSEL2 loads the LCD data latch
   _delay_us(1);
   PORTG_REG |= (1 << PG3);    // LCD_E HIGH
   _delay_us(2);               // HD44780 requires > 450 ns
   PORTG_REG &= ~(1 << PG3);   // LCD_E LOW (falling edge latches command)
+  _delay_us(1);               // Hold RS and data after E falls
   SREG = sreg;                // Restore interrupts
   _delay_us(100);             // Standard command execution time (> 37 us)
 }
 
+
 void lcd_send_data(uint8_t data) {
   uint8_t sreg = SREG;
-  cli();                      // Disable interrupts: protect A0 (RS) and external bus
-  LCD_DATA_REG = data;        // Address 0x1101 (A0=1 -> RS=1, CSEL1 active)
+  cli();                      // Protect RS, latched data, and the E pulse
+  PORTG_REG |= (1 << PG4);    // Dedicated LCD RS HIGH: character data
+  io_bus_write(EXTERNAL_MEM + CSEL1, data);        // CSEL1 loads the LCD data latch
+
   _delay_us(1);
   PORTG_REG |= (1 << PG3);    // LCD_E HIGH
   _delay_us(2);               // HD44780 requires > 450 ns
   PORTG_REG &= ~(1 << PG3);   // LCD_E LOW (falling edge latches data)
+  _delay_us(1);               // Hold RS and data after E falls
   SREG = sreg;                // Restore interrupts
+
   _delay_us(50);              // Standard data execution time (> 43 us)
 }
 
 void lcd_init(void){
-  // Set PG3 as output and ensure it starts LOW
-  DDRG_REG |= (1 << PG3);
-  PORTG_REG &= ~(1 << PG3);
+  // PG3 = LCD E, PG4 = LCD RS. RS must be disconnected from latched A0.
+  // AS0=0 leaves PG3/PG4 as GPIO rather than asynchronous timer pins.
+  ASSR &= ~(1 << AS0);
+  PORTG_REG &= ~((1 << PG3) | (1 << PG4));
+  DDRG_REG |= (1 << PG3) | (1 << PG4);
 
   // Power-on delay for HD44780
   _delay_ms(100);

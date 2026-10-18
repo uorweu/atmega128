@@ -8,6 +8,7 @@
 #include "7SLED.h"
 #include "relay.h"
 #include "menu.h"
+#include "clock.h"
 
 int main(void) {
     // 1. Enable External Memory Interface with wait states
@@ -18,6 +19,7 @@ int main(void) {
     // 2. Initialize Peripherals
     lcd_init();     // Initialize LCD (HD44780 8-bit mode)
     relay_init();   // Initialize Relays (all 4 relays OFF)
+    clock_init();   // Initialize clock/display buffer before Timer0 starts.
     seg7_init();    // Initialize 7-segment display (turn all digits off)
     menu_init();    // Build linked-list menu tree & show "HI YOU"
 

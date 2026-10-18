@@ -8,7 +8,7 @@ typedef struct Menu Menu;
 typedef struct MenuItem MenuItem;
 
 struct MenuItem {
-    char text[20];
+    char text[21];
     MenuItem *next;
     MenuItem *prev;
     Menu *child_menu;
@@ -16,7 +16,7 @@ struct MenuItem {
 };
 
 struct Menu {
-    char title[20];
+    char title[21];
     MenuItem *first_item;
     Menu *parent_menu;
 };

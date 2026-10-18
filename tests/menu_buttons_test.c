@@ -1,0 +1,116 @@
+// Host checks of the real menu/button logic with a fake input bus and LCD.
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include "define.h"
+#include "clock.h"
+static uint8_t input_bits;
+#undef READ_BUTTONS
+#define READ_BUTTONS (*(uint8_t *)(&buttons) = input_bits)
+#include "../src/app/buttons.c"
+#include "../src/app/menu.c"
+// This host menu test simulates seven-segment outputs; the AVR test does not.
+void seg7_init(void) {}
+void seg7_set_digit(uint8_t pos, uint8_t value) { (void)pos; (void)value; }
+void seg7_set_array(const uint8_t digits[SEG7_NUM_DIGITS]) { (void)digits; }
+void seg7_set_number(uint32_t num) { (void)num; }
+void seg7_set_dp_mask(uint8_t mask) { (void)mask; }
+void seg7_update(void) {}
+static char screen[4][21];
+static uint8_t row, col;
+static ClockTime_t fake_time = {12, 0, 0};
+static uint8_t running = 1;
+void lcd_clear(void) {
+    for (unsigned r = 0; r < 4; r++) {
+        memset(screen[r], ' ', 20); screen[r][20] = 0;
+    }
+    row = col = 0;
+}
+void lcd_set_cursor(uint8_t r, uint8_t c) {
+    assert(r < 4 && c < 20); row = r; col = c;
+}
+void lcd_send_data(uint8_t data) {
+    assert(col < 20); screen[row][col++] = data;
+}
+void lcd_send_string(const char *str) {
+    while (*str) lcd_send_data(*str++);
+}
+void clock_get_time(ClockTime_t *t) { *t = fake_time; }
+void clock_set_time(uint8_t h, uint8_t m, uint8_t s) {
+    fake_time = (ClockTime_t){h, m, s};
+}
+void clock_pause(void) { running = 0; }
+void clock_start(void) { running = 1; }
+void clock_update_display(void) {}
+static void tick(uint8_t bits) {
+    input_bits = bits; button_update(); menu_update();
+}
+static void tap(uint8_t bits) { tick(bits); tick(0); }
+int main(void) {
+    for (unsigned i = 0; i < 8; i++) {
+        input_bits = 1u << i; button_update();
+        assert(button_pressed() == input_bits);
+        unsigned repeats = 0;
+        for (unsigned n = 2; n <= 2000; n++) {
+            button_update(); assert(button_pressed() == 0);
+            if (button_held()) repeats++;
+        }
+        assert(repeats == 246);
+        input_bits = 0; button_update();
+    }
+    menu_init();
+    for (unsigned n = 0; n < 70; n++) tick(0);
+    assert(strncmp(screen[0] + 5, "HI YOU", 6) == 0);
+    tap(BTN_BIT_1);
+    assert(current_state == STATE_MENU);
+    for (unsigned n = 0; n < 60; n++) tick(0);
+    assert(strlen(screen[0]) == 20);
+    Menu *menus[] = {&MainMenu, &SegMenu, &RelayMenu, &SystemMenu};
+    for (unsigned m = 0; m < 4; m++) {
+        current_menu = menus[m];
+        current_item = top_display_item = current_menu->first_item;
+        cursor_row = 1;
+        MenuItem *previous = NULL;
+        while (current_item->next) {
+            assert(current_item->prev == previous);
+            previous = current_item; tap(BTN_BIT_DOWN);
+            MenuItem *visible = top_display_item;
+            for (unsigned r = 1; r < cursor_row; r++) visible = visible->next;
+            assert(visible == current_item);
+        }
+        MenuItem *last = current_item;
+        tap(BTN_BIT_DOWN); assert(current_item == last);
+        while (current_item->prev) tap(BTN_BIT_UP);
+        assert(current_item == current_menu->first_item && cursor_row == 1);
+        tap(BTN_BIT_UP); assert(current_item == current_menu->first_item);
+    }
+    menu_init(); tap(BTN_BIT_GO);
+    for (unsigned n = 0; n < 100; n++) tick(BTN_BIT_RIGHT);
+    assert(current_menu == &SegMenu && current_state == STATE_MENU);
+    tick(0); tap(BTN_BIT_LEFT); assert(current_menu == &MainMenu);
+    for (unsigned m = 1; m < 4; m++) {
+        for (MenuItem *item = menus[m]->first_item; item; item = item->next) {
+            current_state = STATE_MENU; current_menu = menus[m];
+            current_item = top_display_item = item; cursor_row = 1;
+            tap(BTN_BIT_GO);
+            if (current_state == STATE_ADJUST_CLOCK) {
+                assert(!running);
+                tap(BTN_BIT_RIGHT); tap(BTN_BIT_UP); tap(BTN_BIT_DOWN);
+                tap(BTN_BIT_LEFT);
+                memset(adjust_digits, 9, sizeof adjust_digits);
+                tap(BTN_BIT_GO);
+                assert(running && fake_time.hours == 23);
+                assert(fake_time.minutes == 59 && fake_time.seconds == 59);
+                tap(BTN_BIT_GO); assert(!running);
+                tap(BTN_BIT_1); assert(running);
+            } else {
+                assert(current_state == STATE_RUNNING);
+                for (unsigned n = 0; n < 10; n++) tick(0);
+                tap(BTN_BIT_LEFT); assert(current_state == STATE_MENU);
+            }
+        }
+    }
+    menu_init(); tap(BTN_BIT_GO); tap(BTN_BIT_LEFT);
+    assert(current_state == STATE_WELCOME);
+    puts("PASS: mapping/repeat, links/scroll, navigation, all LCD actions, clock save/cancel");
+}

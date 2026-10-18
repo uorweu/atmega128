@@ -1,36 +1,18 @@
 #include "7SLED.h"
 #include "define.h"
 #include <avr/io.h>
-#include <util/delay.h>
+#include <util/atomic.h>
 
-// Common Cathode (CC) 7-segment display uses Active-HIGH segment data:
-// 1 = segment ON (5V), 0 = segment OFF (0V).
-static const uint8_t SEG_TABLE[16] = {
-    0x3F, // 0: a, b, c, d, e, f
-    0x06, // 1: b, c
-    0x5B, // 2: a, b, d, e, g
-    0x4F, // 3: a, b, c, d, g
-    0x66, // 4: b, c, f, g
-    0x6D, // 5: a, c, d, f, g
-    0x7D, // 6: a, c, d, e, f, g
-    0x07, // 7: a, b, c
-    0x7F, // 8: all segments on
-    0x6F, // 9: a, b, c, d, f, g
-    0x77, // A
-    0x7C, // b
-    0x39, // C
-    0x5E, // d
-    0x79, // E
-    0x71  // F
-};
+// Common-cathode segment outputs are active HIGH.
+// Use the board-confirmed segment map in define.h (dp,g,f,e,d,c,b,a).
 
 #define SEG_BLANK 0x00  // All segments OFF for Common Cathode (0V)
 
-// Display buffer initialized to default: "102026"
+// Keep the physical display blank until a menu function supplies digits.
 // [0] = LED 1 (leftmost, Q0) ... [5] = LED 6 (rightmost, Q5)
-static uint8_t display_buffer[SEG7_NUM_DIGITS] = {1, 0, 2, 0, 2, 6};
+static volatile uint8_t display_buffer[SEG7_NUM_DIGITS] = {SEG7_BLANK, SEG7_BLANK, SEG7_BLANK, SEG7_BLANK, SEG7_BLANK, SEG7_BLANK};
 static uint8_t current_digit = 0;
-static uint8_t dp_mask = 0x00;
+static volatile uint8_t dp_mask = 0x00;
 
 #include <avr/interrupt.h>
 #include "clock.h"
@@ -38,6 +20,14 @@ static uint8_t dp_mask = 0x00;
 static uint16_t timer0_tick_count = 0;
 
 void seg7_init(void) {
+    // Synchronous Timer0 leaves PG3/PG4 available for LCD E and RS.
+    ASSR &= ~(1 << AS0);
+    current_digit = 0;
+    timer0_tick_count = 0;
+    dp_mask = 0;
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) {
+        display_buffer[i] = SEG7_BLANK;
+    }
     // Hardware memory interface writes to CSEL3 and CSEL4:
     LED_7CONTROL = 0x00;        // Turn off all digit transistors
     LED_7DATA    = SEG_BLANK;   // Turn off all segment lines
@@ -47,7 +37,8 @@ void seg7_init(void) {
     // Refresh rate for 6 digits = 500 Hz / 6 = 83.3 Hz (clean, zero flicker)
     TCCR0 = (1 << WGM01) | (1 << CS02) | (1 << CS01);
     TCNT0 = 0;
-    OCR0  = 124;
+    OCR0  = (F_CPU / 256UL / 500UL) - 1;
+    TIFR = (1 << OCF0); // Discard any pending compare before enabling it.
     TIMSK |= (1 << OCIE0);      // Enable Timer0 Compare Match Interrupt
     sei();                      // Enable global interrupts
 }
@@ -70,16 +61,20 @@ void seg7_set_digit(uint8_t pos, uint8_t value) {
 }
 
 void seg7_set_array(const uint8_t digits[SEG7_NUM_DIGITS]) {
-    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) {
-        display_buffer[i] = digits[i];
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) {
+            display_buffer[i] = digits[i];
+        }
     }
 }
 
 void seg7_set_number(uint32_t num) {
+    uint8_t digits[SEG7_NUM_DIGITS];
     for (int8_t i = SEG7_NUM_DIGITS - 1; i >= 0; i--) {
-        display_buffer[i] = num % 10;
+        digits[i] = num % 10;
         num /= 10;
     }
+    seg7_set_array(digits);
 }
 
 void seg7_set_dp_mask(uint8_t mask) {
@@ -87,21 +82,21 @@ void seg7_set_dp_mask(uint8_t mask) {
 }
 
 void seg7_update(void) {
-    // 1. Blanking: Turn off all transistors first (via CSEL3) to prevent ghosting
+    // 1. Blanking: Turn off all transistors first (via CSEL4) to prevent ghosting
     LED_7CONTROL = 0x00;
 
-    // 2. Load the segment pattern for the active digit (via CSEL4)
+    // 2. Load the segment pattern for the active digit (via CSEL3)
     uint8_t val = display_buffer[current_digit];
-    uint8_t seg_pattern = (val < 16) ? SEG_TABLE[val] : SEG_BLANK;
+    uint8_t seg_pattern = (val < 16) ? SEGMENT_MAP[val] : SEG_BLANK;
 
     // 2b. Turn on Decimal Point if enabled for this digit
-    if (dp_mask & (1 << current_digit)) {
-        seg_pattern |= 0x80; // Bit 7 is DP (driven through R81 / Q7)
+    if (val < 16 && (dp_mask & (1 << current_digit))) {
+        seg_pattern |= SEG7_DP_MASK; // Decimal point is segment-data bit 0.
     }
 
     LED_7DATA = seg_pattern;
 
-    // 3. Enable the transistor for the current position (via CSEL3):
+    // 3. Enable the transistor for the current position (via CSEL4):
     //    current_digit 0 (LED 1, leftmost)  -> Q0 (pin 19) -> bit 0 (1 << 0) = 0x01
     //    current_digit 1 (LED 2)            -> Q1 (pin 18) -> bit 1 (1 << 1) = 0x02
     //    current_digit 2 (LED 3)            -> Q2 (pin 17) -> bit 2 (1 << 2) = 0x04

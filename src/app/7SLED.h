@@ -5,6 +5,7 @@
 
 #define SEG7_NUM_DIGITS 6
 #define SEG7_BLANK      0xFF
+#define SEG7_DP_MASK    0x01 // Physical segment-latch bit 0, confirmed on board
 
 /**
  * @brief Initialize the 7-segment display module (turns off all digits & starts Timer0).

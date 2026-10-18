@@ -1,0 +1,47 @@
+// Hold a single digit at 8 for electrical checks; UP/DOWN choose Q0..Q5.
+#include "define.h"
+#include "lcd.h"
+#include "buttons.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+
+static void show_digit(uint8_t digit) {
+    LED_7CONTROL = 0;
+    LED_7DATA = 0;
+    lcd_set_cursor(0, 0);
+    lcd_send_string("STATIC DIGIT TEST   ");
+    lcd_set_cursor(1, 0);
+    lcd_send_string("DIGIT Q");
+    lcd_send_data('0' + digit);
+    lcd_send_string("            ");
+    lcd_set_cursor(2, 0);
+    lcd_send_string("DATA=FE  DP OFF     ");
+    lcd_set_cursor(3, 0);
+    lcd_send_string("UP/DOWN: SELECT     ");
+    LED_7DATA = 0xFE;
+    _delay_us(10);
+    LED_7CONTROL = (1 << digit);
+}
+
+int main(void) {
+    cli(); // No timer interrupts or multiplexing in this diagnostic.
+    MCUCR |= (1 << SRE);
+    LED_7CONTROL = 0;
+    LED_7DATA = 0;
+    lcd_init();
+    uint8_t digit = 0;
+    show_digit(digit);
+    while (1) {
+        button_update(); // OE remains connected to RD_L, not GND.
+        uint8_t pressed = button_pressed();
+        if (pressed & BTN_BIT_UP) {
+            digit = (digit == 5) ? 0 : digit + 1;
+            show_digit(digit);
+        } else if (pressed & BTN_BIT_DOWN) {
+            digit = (digit == 0) ? 5 : digit - 1;
+            show_digit(digit);
+        }
+        _delay_ms(10);
+    }
+}
