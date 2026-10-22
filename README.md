@@ -1,5 +1,7 @@
 # ATmega128A memory-mapped I/O project
 
+![ATmega128A system prototype](prototype.jpg)
+
 ## Current firmware
 
 The simpler PROJECT 01 application is now the main project in
@@ -15,7 +17,7 @@ make test builds the separate src/test/test.c copy to output/test.hex;
 it is not the primary image for ongoing project updates.
 
 The main application provides:
-- PROJECT 01 on LCD row 2 and `MEMBERS: BAO - DUC - MINH - HUNG` scrolling back and forth on row 3.
+- PROJECT 01 on LCD row 2 and `the content` scrolling back and forth on row 3.
 - Any-button entry to vertical DEVICES menu with 7-SEGMENT LED and RELAY entries.
 - UP/DOWN selection, GO/RIGHT entry, LEFT back, and BTN1 exit, with no
   operating instructions printed on the screen.

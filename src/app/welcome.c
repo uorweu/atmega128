@@ -3,7 +3,7 @@
 
 #define SCROLL_STEP_TICKS 25       // 250 ms between character steps.
 #define SCROLL_END_PAUSE_TICKS 100 // 1 second pause at either end.
-static const char members[] = "MEMBERS: BAO - DUC - MINH - HUNG";
+static const char members[] = "MEMBERS:";
 #define SCROLL_MAX (sizeof(members) - 1u - LCD_COLUMNS)
 
 static uint8_t scroll_position;
