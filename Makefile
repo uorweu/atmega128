@@ -30,8 +30,12 @@ TEST_OBJS = $(patsubst src/test/%.c,   build/test/%.o,          $(wildcard src/t
 						$(patsubst src/app/%.c,     build/test/app/%.o,      $(wildcard src/app/*.c))
 
 
-# Test uses the physical seven-segment driver; relay outputs remain simulated.
-TEST_OBJS := $(filter-out build/test/app/relay.o build/test/gpio_bus.o,$(TEST_OBJS))
+# The main firmware has no clock feature. Keep it for legacy diagnostics.
+MAIN_OBJS := $(filter-out build/main/app/clock.o,$(MAIN_OBJS))
+build/test/app/7SLED.o: CFLAGS += -DSEG7_ENABLE_CLOCK
+
+# Standalone test.c owns its entry point and Timer1.
+TEST_OBJS := $(filter-out build/test/gpio_bus.o,$(TEST_OBJS))
 
 # Include the header files
 CFLAGS += -Isrc/main -Isrc/drivers -Isrc/common -Isrc/app -Isrc/test
@@ -73,7 +77,7 @@ build/main/common/%.o: src/common/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/main/app/%.o: src/app/%.c
+build/main/app/%.o: src/app/%.c Makefile
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -124,4 +128,3 @@ clean:
 
 # Rebuild affected sources when shared headers change.
 -include $(MAIN_OBJS:.o=.d) $(TEST_OBJS:.o=.d)
-

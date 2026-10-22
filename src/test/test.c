@@ -1,49 +1,254 @@
 #include "define.h"
 #include "lcd.h"
 #include "buttons.h"
-#include "menu.h"
-#include "clock.h"
+#include "relay.h"
 #include "7SLED.h"
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 
-// Button latch OE must connect to PG1/RD_L, with its 10k pull-up retained.
-// Real LCD/buttons/7-segment clock; relay outputs remain simulated.
+#define LCD_COLUMNS 20
+#define SCROLL_STEP_TICKS 25       // 250 ms between character steps.
+#define SCROLL_END_PAUSE_TICKS 100 // 1 second pause at either end.
+static const char members[] = "MEMBERS: DUC - BAO - MINH - HUNG";
+#define SCROLL_MAX (sizeof(members) - 1u - LCD_COLUMNS)
+
+typedef enum {
+    SCREEN_WELCOME,
+    SCREEN_DEVICES,
+    SCREEN_LED_MENU,
+    SCREEN_LED_RUN,
+    SCREEN_RELAY_MENU,
+    SCREEN_RELAY_STATUS
+} Screen;
+
+static const char *const devices[] = {"1. LED", "2. RELAY"};
+static const char *const led_modes[] = {
+    "1. DISPLAY 0000", "2. DISPLAY 9999", "3. INCREASE", "4. DECREASE"
+};
+static const char *const relay_modes[] = {
+    "1. RELAY ON", "2. RELAY OFF"
+};
+
+static Screen screen = SCREEN_WELCOME;
+static uint8_t device_selection;
+static uint8_t led_selection;
+static uint8_t relay_selection;
+static uint8_t active_led_mode;
+static uint16_t led_value;
+
+static uint8_t scroll_position;
+static uint8_t scroll_forward;
+static uint8_t scroll_delay;
 static volatile uint16_t ticks;
-ISR(TIMER1_COMPA_vect) {
-  ticks++;
+
+ISR(TIMER1_COMPA_vect)
+{
+    ticks++;
 }
 
-int main(void) {
-  // Retain the hardware XMEM configuration of the working static menu.
-  MCUCR |= (1 << SRE);
-  lcd_init();
-  clock_init();
-  menu_init();
-
-  // Timer1 provides a 10 ms tick at 16 MHz; PG3/PG4 remain LCD E/RS.
-  TCCR1A = 0;
-  TCCR1B = 0;
-  TCNT1 = 0;
-  OCR1A = (F_CPU / 64UL / 100UL) - 1;
-  TIFR = (1 << OCF1A);
-  TIMSK |= (1 << OCIE1A);
-  TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10);
-  seg7_init(); // Timer0 scans digits and supplies the ONLY 1-second clock tick.
-  sei();
-
-  uint16_t processed = 0;
-
-  while (1) {
-    uint16_t now;
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      now = ticks;
+static void write_row(uint8_t row, const char *text)
+{
+    lcd_set_cursor(row, 0);
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++) {
+        if (*text) lcd_send_data((uint8_t)*text++);
+        else lcd_send_data(' ');
     }
-    if (processed == now) continue;
-    processed++;
-    button_update(); // Read active-HIGH button bits at CSEL0 (0x1100).
-    menu_update();
-  }
+}
+
+// Header plus three visible entries. Scroll the four-entry LED menu vertically.
+static void draw_list(const char *title, const char *const *items,
+                      uint8_t count, uint8_t selected)
+{
+    write_row(0, title);
+    uint8_t first = selected >= 3 ? selected - 2 : 0;
+    for (uint8_t row = 1; row < 4; row++) {
+        uint8_t item = first + row - 1;
+        lcd_set_cursor(row, 0);
+        const char *text = item < count ? items[item] : "";
+        lcd_send_data(item < count && item == selected ? '>' : ' ');
+        lcd_send_data(' ');
+        for (uint8_t column = 2; column < LCD_COLUMNS; column++) {
+            if (*text) lcd_send_data((uint8_t)*text++);
+            else lcd_send_data(' ');
+        }
+    }
+}
+
+static void draw_members(void)
+{
+    lcd_set_cursor(2, 0);
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++)
+        lcd_send_data((uint8_t)members[scroll_position + column]);
+}
+
+static void draw_welcome(void)
+{
+    screen = SCREEN_WELCOME;
+    scroll_position = 0;
+    scroll_forward = 1;
+    scroll_delay = SCROLL_END_PAUSE_TICKS;
+    lcd_clear();
+    write_row(1, "     PROJECT 01");
+    draw_members();
+}
+
+static void draw_menu(void)
+{
+    if (screen == SCREEN_DEVICES)
+        draw_list("DEVICE:", devices, 2, device_selection);
+    else if (screen == SCREEN_LED_MENU)
+        draw_list("LED:", led_modes, 4, led_selection);
+    else if (screen == SCREEN_RELAY_MENU)
+        draw_list("RELAY:", relay_modes, 2, relay_selection);
+}
+
+static void open_menu(Screen target)
+{
+    screen = target;
+    lcd_clear();
+    draw_menu();
+}
+
+static void scroll_welcome(void)
+{
+    if (--scroll_delay != 0) return;
+    if (scroll_forward) {
+        if (++scroll_position == SCROLL_MAX) scroll_forward = 0;
+    } else {
+        if (--scroll_position == 0) scroll_forward = 1;
+    }
+    draw_members();
+    scroll_delay = (scroll_position == 0 || scroll_position == SCROLL_MAX)
+                 ? SCROLL_END_PAUSE_TICKS : SCROLL_STEP_TICKS;
+}
+
+static void display_led_value(void)
+{
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) digits[i] = SEG7_BLANK;
+    uint16_t value = led_value;
+    for (uint8_t i = 0; i < 4; i++) {
+        digits[SEG7_NUM_DIGITS - 1 - i] = value % 10;
+        value /= 10;
+    }
+    seg7_set_dp_mask(0);
+    seg7_set_array(digits);
+
+    lcd_set_cursor(1, 0);
+    lcd_send_string("VALUE: ");
+    for (uint8_t i = SEG7_NUM_DIGITS - 4; i < SEG7_NUM_DIGITS; i++)
+        lcd_send_data('0' + digits[i]);
+    lcd_send_string("         ");
+}
+
+static void start_led_mode(void)
+{
+    active_led_mode = led_selection;
+    led_value = (active_led_mode == 1 || active_led_mode == 3) ? 9999 : 0;
+
+    screen = SCREEN_LED_RUN;
+    lcd_clear();
+    write_row(0, led_modes[active_led_mode]);
+    display_led_value();
+}
+
+static void run_led_press(uint8_t pressed)
+{
+    uint16_t before = led_value;
+    if (active_led_mode == 2 && (pressed & BTN_BIT_UP) && led_value < 9999)
+        led_value++;
+    else if (active_led_mode == 3 && (pressed & BTN_BIT_DOWN) && led_value > 0)
+        led_value--;
+    if (led_value != before) display_led_value();
+}
+static void apply_relay_action(void)
+{
+    // Existing relay module/driver behavior, including its buzzer linkage.
+    if (relay_selection == 0) relay_on(0);
+    else relay_off(0);
+    screen = SCREEN_RELAY_STATUS;
+    lcd_clear();
+    write_row(0, "RELAY 1");
+    write_row(1, (relay_get_state() & RELAY_0_BIT) ? "STATE: ON" : "STATE: OFF");
+}
+
+// Call every 10 ms. Confirm/back/exit use new presses; UP/DOWN may repeat.
+static void ui_update(uint8_t pressed, uint8_t navigation)
+{
+    if (screen == SCREEN_WELCOME) {
+        if (pressed) {
+            device_selection = 0;
+            open_menu(SCREEN_DEVICES);
+        } else scroll_welcome();
+        return;
+    }
+    if (pressed & BTN_BIT_1) {
+        draw_welcome();
+        return;
+    }
+    if (pressed & BTN_BIT_LEFT) {
+        if (screen == SCREEN_DEVICES) draw_welcome();
+        else if (screen == SCREEN_LED_RUN) open_menu(SCREEN_LED_MENU);
+        else if (screen == SCREEN_RELAY_STATUS) open_menu(SCREEN_RELAY_MENU);
+        else open_menu(SCREEN_DEVICES);
+        return;
+    }
+    if (screen == SCREEN_LED_RUN) {
+        run_led_press(pressed);
+        return;
+    }
+    if (screen == SCREEN_RELAY_STATUS) return;
+
+    uint8_t *selected;
+    uint8_t count;
+    if (screen == SCREEN_DEVICES) {
+        selected = &device_selection; count = 2;
+    } else if (screen == SCREEN_LED_MENU) {
+        selected = &led_selection; count = 4;
+    } else {
+        selected = &relay_selection; count = 2;
+    }
+    uint8_t before = *selected;
+    if ((navigation & BTN_BIT_DOWN) && *selected + 1 < count) (*selected)++;
+    else if ((navigation & BTN_BIT_UP) && *selected > 0) (*selected)--;
+    else if (pressed & (BTN_BIT_GO | BTN_BIT_RIGHT)) {
+        if (screen == SCREEN_DEVICES) {
+            open_menu(device_selection == 0 ? SCREEN_LED_MENU : SCREEN_RELAY_MENU);
+        } else if (screen == SCREEN_LED_MENU) start_led_mode();
+        else apply_relay_action();
+        return;
+    }
+    if (*selected != before) draw_menu();
+}
+
+int main(void)
+{
+    XMCRA = (1 << SRW11);
+    MCUCR |= (1 << SRE) | (1 << SRW10);
+    relay_init();
+    LED_7CONTROL = 0;
+    LED_7DATA = 0;
+    lcd_init();
+    draw_welcome();
+
+    TCCR1A = 0;
+    TCCR1B = 0;
+    TCNT1 = 0;
+    OCR1A = (F_CPU / 64UL / 100UL) - 1;
+    TIFR = (1 << OCF1A);
+    TIMSK |= (1 << OCIE1A);
+    TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10);
+    seg7_init();
+    sei();
+
+    uint16_t processed = 0;
+    while (1) {
+        uint16_t now;
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { now = ticks; }
+        if (processed == now) continue;
+        processed++;
+        button_update();
+        ui_update(button_pressed(), button_triggered());
+    }
 }

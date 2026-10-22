@@ -1,39 +1,66 @@
-#define F_CPU 16000000UL
-#include <avr/io.h>
-#include <util/delay.h>
-
+// Startup and button dispatch; menu.c connects the device callbacks.
 #include "define.h"
 #include "lcd.h"
 #include "buttons.h"
-#include "7SLED.h"
 #include "relay.h"
+#include "7SLED.h"
 #include "menu.h"
-#include "clock.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+#include "welcome.h"
 
-int main(void) {
-    // 1. Enable External Memory Interface with wait states
-    //    SRW10 in MCUCR, and SRW01/SRW00/SRW11 in XMCRA give 2 wait states
-    MCUCR |= (1 << SRE) | (1 << SRW10);
-    XMCRA = (1 << SRW01) | (1 << SRW00) | (1 << SRW11);
+static uint8_t in_menu;
 
-    // 2. Initialize Peripherals
-    lcd_init();     // Initialize LCD (HD44780 8-bit mode)
-    relay_init();   // Initialize Relays (all 4 relays OFF)
-    clock_init();   // Initialize clock/display buffer before Timer0 starts.
-    seg7_init();    // Initialize 7-segment display (turn all digits off)
-    menu_init();    // Build linked-list menu tree & show "HI YOU"
-
-    // 3. Main Loop
-    while (1) {
-        // Sample & debounce button states
-        button_update();
-
-        // Update menu navigation, blinking header, and LCD display
-        menu_update();
-        // (7-segment LED multiplexing is now handled automatically by Timer0 ISR at 500 Hz)
-        // 10ms loop tick
-        _delay_ms(10);
+// Only button dispatch belongs here; linked-list navigation lives in menu.c.
+static void dispatch_buttons(uint8_t pressed, uint8_t navigation)
+{
+    if (!in_menu) {
+        if (pressed) {
+            menu_init();
+            in_menu = 1;
+            lcd_clear();
+            menu_draw();
+        } else welcome_update();
+        return;
     }
+    if (pressed & BTN_BIT_1) {
+        in_menu = 0;
+        welcome_show();
+    } else if (pressed & BTN_BIT_LEFT) {
+        if (!menu_back()) {
+            in_menu = 0;
+            welcome_show();
+        }
+    } else if (menu_action_active()) {
+        menu_action_input(pressed);
+    } else if (navigation & BTN_BIT_DOWN) menu_down();
+    else if (navigation & BTN_BIT_UP) menu_up();
+    else if (pressed & (BTN_BIT_GO | BTN_BIT_RIGHT)) menu_enter();
+}
 
-    return 0;
+int main(void)
+{
+    cli();
+
+    // Hardware XMEM setup and the existing conservative wait settings.
+    XMCRA = (1 << SRW11);
+    MCUCR |= (1 << SRE) | (1 << SRW10);
+    relay_init();
+    LED_7CONTROL = 0;
+    LED_7DATA = 0;
+    lcd_init();
+    menu_init();
+    in_menu = 0;
+    welcome_show();
+
+    // Timer0 refreshes the multiplexed display; no application timer.
+    seg7_init();
+    sei();
+
+    while (1) {
+        _delay_ms(10);
+        button_update();
+        dispatch_buttons(button_pressed(), button_triggered());
+    }
 }

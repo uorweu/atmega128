@@ -48,24 +48,24 @@ extern BUTTON_REG_BITS buttons;
 // RELAYS
 #define RELAYS (*(volatile uint8_t *)(EXTERNAL_MEM + CSEL5))
 
-// Board-confirmed CC segment order: bit 0 dp, 1 g, 2 f, 3 e,
-// bit 4 d, 5 c, 6 b, 7 a. Patterns below exclude the decimal point.
+// CC segment order inferred from the latest board glyphs: dp, g, f, e,
+// bit 4 d, 5 c, 6 a, 7 b. Patterns below exclude the decimal point.
 static const uint8_t SEGMENT_MAP[16] = {
     0xFC, // 0: a b c d e f
-    0x60, // 1: b c
+    0xA0, // 1: b c
     0xDA, // 2: a b d e g
     0xF2, // 3: a b c d g
-    0x66, // 4: b c f g
-    0xB6, // 5: a c d f g
-    0xBE, // 6: a c d e f g
+    0xA6, // 4: b c f g
+    0x76, // 5: a c d f g
+    0x7E, // 6: a c d e f g
     0xE0, // 7: a b c
     0xFE, // 8: a b c d e f g
     0xF6, // 9: a b c d f g
     0xEE, // A: a b c e f g
     0x3E, // b: c d e f g
-    0x9C, // C: a d e f
-    0x7A, // d: b c d e g
-    0x9E, // E: a d e f g
-    0x8E  // F: a e f g
+    0x5C, // C: a d e f
+    0xBA, // d: b c d e g
+    0x5E, // E: a d e f g
+    0x4E  // F: a e f g
 };
 #endif

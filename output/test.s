@@ -14,13 +14,13 @@ Disassembly of section .text:
       18:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
       1c:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
       20:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
-      24:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
+      24:	0c 94 e0 07 	jmp	0xfc0	; 0xfc0 <__vector_9>
       28:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
       2c:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
-      30:	0c 94 b1 00 	jmp	0x162	; 0x162 <__vector_12>
+      30:	0c 94 8b 01 	jmp	0x316	; 0x316 <__vector_12>
       34:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
       38:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
-      3c:	0c 94 5a 02 	jmp	0x4b4	; 0x4b4 <__vector_15>
+      3c:	0c 94 dd 03 	jmp	0x7ba	; 0x7ba <__vector_15>
       40:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
       44:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
       48:	0c 94 65 00 	jmp	0xca	; 0xca <__bad_interrupt>
@@ -50,3219 +50,3987 @@ Disassembly of section .text:
       96:	cd bf       	out	0x3d, r28	; 61
 
 00000098 <__do_copy_data>:
-      98:	15 e0       	ldi	r17, 0x05	; 5
+      98:	13 e0       	ldi	r17, 0x03	; 3
       9a:	a0 e0       	ldi	r26, 0x00	; 0
       9c:	b1 e0       	ldi	r27, 0x01	; 1
-      9e:	ec e2       	ldi	r30, 0x2C	; 44
-      a0:	f3 e1       	ldi	r31, 0x13	; 19
+      9e:	e2 eb       	ldi	r30, 0xB2	; 178
+      a0:	f4 e1       	ldi	r31, 0x14	; 20
       a2:	00 e0       	ldi	r16, 0x00	; 0
       a4:	0b bf       	out	0x3b, r16	; 59
       a6:	02 c0       	rjmp	.+4      	; 0xac <__do_copy_data+0x14>
       a8:	07 90       	elpm	r0, Z+
       aa:	0d 92       	st	X+, r0
-      ac:	ae 3a       	cpi	r26, 0xAE	; 174
+      ac:	a8 3b       	cpi	r26, 0xB8	; 184
       ae:	b1 07       	cpc	r27, r17
       b0:	d9 f7       	brne	.-10     	; 0xa8 <__do_copy_data+0x10>
 
 000000b2 <__do_clear_bss>:
-      b2:	25 e0       	ldi	r18, 0x05	; 5
-      b4:	ae ea       	ldi	r26, 0xAE	; 174
-      b6:	b5 e0       	ldi	r27, 0x05	; 5
+      b2:	24 e0       	ldi	r18, 0x04	; 4
+      b4:	a8 eb       	ldi	r26, 0xB8	; 184
+      b6:	b3 e0       	ldi	r27, 0x03	; 3
       b8:	01 c0       	rjmp	.+2      	; 0xbc <.do_clear_bss_start>
 
 000000ba <.do_clear_bss_loop>:
       ba:	1d 92       	st	X+, r1
 
 000000bc <.do_clear_bss_start>:
-      bc:	a3 3d       	cpi	r26, 0xD3	; 211
+      bc:	ae 31       	cpi	r26, 0x1E	; 30
       be:	b2 07       	cpc	r27, r18
       c0:	e1 f7       	brne	.-8      	; 0xba <.do_clear_bss_loop>
-      c2:	0e 94 11 09 	call	0x1222	; 0x1222 <main>
-      c6:	0c 94 94 09 	jmp	0x1328	; 0x1328 <_exit>
+      c2:	0e 94 c1 08 	call	0x1182	; 0x1182 <main>
+      c6:	0c 94 57 0a 	jmp	0x14ae	; 0x14ae <_exit>
 
 000000ca <__bad_interrupt>:
       ca:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
-000000ce <relay_init>:
-#include "relay.h"
-
-static uint8_t relay_state;
-
-
-void relay_init(void) { relay_state = 0; }
-      ce:	10 92 ae 05 	sts	0x05AE, r1	; 0x8005ae <__data_end>
-      d2:	08 95       	ret
-
-000000d4 <relay_set_raw>:
-void relay_set_raw(uint8_t state) { relay_state = state & 0x0F; }
-      d4:	8f 70       	andi	r24, 0x0F	; 15
-      d6:	80 93 ae 05 	sts	0x05AE, r24	; 0x8005ae <__data_end>
-      da:	08 95       	ret
-
-000000dc <relay_get_state>:
-uint8_t relay_get_state(void) { return relay_state; }
-      dc:	80 91 ae 05 	lds	r24, 0x05AE	; 0x8005ae <__data_end>
-      e0:	08 95       	ret
-
-000000e2 <relay_on>:
-void relay_on(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state | (1 << num));
-      e2:	84 30       	cpi	r24, 0x04	; 4
-      e4:	60 f4       	brcc	.+24     	; 0xfe <relay_on+0x1c>
-      e6:	21 e0       	ldi	r18, 0x01	; 1
-      e8:	30 e0       	ldi	r19, 0x00	; 0
-      ea:	01 c0       	rjmp	.+2      	; 0xee <relay_on+0xc>
-      ec:	22 0f       	add	r18, r18
-      ee:	8a 95       	dec	r24
-      f0:	ea f7       	brpl	.-6      	; 0xec <relay_on+0xa>
-      f2:	80 91 ae 05 	lds	r24, 0x05AE	; 0x8005ae <__data_end>
-      f6:	82 2b       	or	r24, r18
-
-static uint8_t relay_state;
-
-
-void relay_init(void) { relay_state = 0; }
-void relay_set_raw(uint8_t state) { relay_state = state & 0x0F; }
-      f8:	8f 70       	andi	r24, 0x0F	; 15
-      fa:	80 93 ae 05 	sts	0x05AE, r24	; 0x8005ae <__data_end>
-uint8_t relay_get_state(void) { return relay_state; }
-void relay_on(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state | (1 << num));
+000000ce <write_row>:
+{
+    ticks++;
 }
-      fe:	08 95       	ret
 
-00000100 <relay_off>:
-void relay_off(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state & ~(1 << num));
-     100:	84 30       	cpi	r24, 0x04	; 4
-     102:	80 f4       	brcc	.+32     	; 0x124 <relay_off+0x24>
-     104:	21 e0       	ldi	r18, 0x01	; 1
-     106:	30 e0       	ldi	r19, 0x00	; 0
-     108:	a9 01       	movw	r20, r18
-     10a:	02 c0       	rjmp	.+4      	; 0x110 <relay_off+0x10>
-     10c:	44 0f       	add	r20, r20
-     10e:	55 1f       	adc	r21, r21
-     110:	8a 95       	dec	r24
-     112:	e2 f7       	brpl	.-8      	; 0x10c <relay_off+0xc>
-     114:	ca 01       	movw	r24, r20
-     116:	80 95       	com	r24
-     118:	90 91 ae 05 	lds	r25, 0x05AE	; 0x8005ae <__data_end>
-     11c:	89 23       	and	r24, r25
-
-static uint8_t relay_state;
-
-
-void relay_init(void) { relay_state = 0; }
-void relay_set_raw(uint8_t state) { relay_state = state & 0x0F; }
-     11e:	8f 70       	andi	r24, 0x0F	; 15
-     120:	80 93 ae 05 	sts	0x05AE, r24	; 0x8005ae <__data_end>
-void relay_on(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state | (1 << num));
+static void write_row(uint8_t row, const char *text)
+{
+      ce:	0f 93       	push	r16
+      d0:	1f 93       	push	r17
+      d2:	cf 93       	push	r28
+      d4:	8b 01       	movw	r16, r22
+    lcd_set_cursor(row, 0);
+      d6:	60 e0       	ldi	r22, 0x00	; 0
+      d8:	0e 94 e5 01 	call	0x3ca	; 0x3ca <lcd_set_cursor>
+      dc:	c4 e1       	ldi	r28, 0x14	; 20
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++) {
+        if (*text) lcd_send_data((uint8_t)*text++);
+      de:	f8 01       	movw	r30, r16
+      e0:	80 81       	ld	r24, Z
+      e2:	88 23       	and	r24, r24
+      e4:	51 f0       	breq	.+20     	; 0xfa <write_row+0x2c>
+      e6:	0f 5f       	subi	r16, 0xFF	; 255
+      e8:	1f 4f       	sbci	r17, 0xFF	; 255
+        else lcd_send_data(' ');
+      ea:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+      ee:	c1 50       	subi	r28, 0x01	; 1
 }
-void relay_off(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state & ~(1 << num));
+
+static void write_row(uint8_t row, const char *text)
+{
+    lcd_set_cursor(row, 0);
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++) {
+      f0:	b1 f7       	brne	.-20     	; 0xde <write_row+0x10>
+        if (*text) lcd_send_data((uint8_t)*text++);
+        else lcd_send_data(' ');
+    }
 }
-     124:	08 95       	ret
+      f2:	cf 91       	pop	r28
+      f4:	1f 91       	pop	r17
+      f6:	0f 91       	pop	r16
+      f8:	08 95       	ret
+static void write_row(uint8_t row, const char *text)
+{
+    lcd_set_cursor(row, 0);
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++) {
+        if (*text) lcd_send_data((uint8_t)*text++);
+        else lcd_send_data(' ');
+      fa:	80 e2       	ldi	r24, 0x20	; 32
+      fc:	f6 cf       	rjmp	.-20     	; 0xea <write_row+0x1c>
 
-00000126 <relay_toggle>:
-void relay_toggle(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state ^ (1 << num));
-     126:	84 30       	cpi	r24, 0x04	; 4
-     128:	60 f4       	brcc	.+24     	; 0x142 <relay_toggle+0x1c>
-     12a:	21 e0       	ldi	r18, 0x01	; 1
-     12c:	30 e0       	ldi	r19, 0x00	; 0
-     12e:	01 c0       	rjmp	.+2      	; 0x132 <relay_toggle+0xc>
-     130:	22 0f       	add	r18, r18
-     132:	8a 95       	dec	r24
-     134:	ea f7       	brpl	.-6      	; 0x130 <relay_toggle+0xa>
-     136:	80 91 ae 05 	lds	r24, 0x05AE	; 0x8005ae <__data_end>
-     13a:	82 27       	eor	r24, r18
-
-static uint8_t relay_state;
-
-
-void relay_init(void) { relay_state = 0; }
-void relay_set_raw(uint8_t state) { relay_state = state & 0x0F; }
-     13c:	8f 70       	andi	r24, 0x0F	; 15
-     13e:	80 93 ae 05 	sts	0x05AE, r24	; 0x8005ae <__data_end>
-void relay_off(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state & ~(1 << num));
+000000fe <draw_members>:
+        }
+    }
 }
-void relay_toggle(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state ^ (1 << num));
+
+static void draw_members(void)
+{
+      fe:	cf 93       	push	r28
+     100:	df 93       	push	r29
+    lcd_set_cursor(2, 0);
+     102:	60 e0       	ldi	r22, 0x00	; 0
+     104:	82 e0       	ldi	r24, 0x02	; 2
+     106:	0e 94 e5 01 	call	0x3ca	; 0x3ca <lcd_set_cursor>
+     10a:	d0 e0       	ldi	r29, 0x00	; 0
+     10c:	c0 e0       	ldi	r28, 0x00	; 0
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++)
+        lcd_send_data((uint8_t)members[scroll_position + column]);
+     10e:	e0 91 bc 03 	lds	r30, 0x03BC	; 0x8003bc <scroll_position>
+     112:	ce 01       	movw	r24, r28
+     114:	8c 50       	subi	r24, 0x0C	; 12
+     116:	9e 4f       	sbci	r25, 0xFE	; 254
+     118:	e8 0f       	add	r30, r24
+     11a:	f9 2f       	mov	r31, r25
+     11c:	f1 1d       	adc	r31, r1
+     11e:	80 81       	ld	r24, Z
+     120:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+     124:	21 96       	adiw	r28, 0x01	; 1
 }
-     142:	08 95       	ret
 
-00000144 <relay_mode_0_2>:
-
-static uint8_t relay_state;
-
-
-void relay_init(void) { relay_state = 0; }
-void relay_set_raw(uint8_t state) { relay_state = state & 0x0F; }
-     144:	85 e0       	ldi	r24, 0x05	; 5
-     146:	80 93 ae 05 	sts	0x05AE, r24	; 0x8005ae <__data_end>
-    if (num < 4) relay_set_raw(relay_state & ~(1 << num));
+static void draw_members(void)
+{
+    lcd_set_cursor(2, 0);
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++)
+     126:	c4 31       	cpi	r28, 0x14	; 20
+     128:	d1 05       	cpc	r29, r1
+     12a:	89 f7       	brne	.-30     	; 0x10e <draw_members+0x10>
+        lcd_send_data((uint8_t)members[scroll_position + column]);
 }
-void relay_toggle(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state ^ (1 << num));
+     12c:	df 91       	pop	r29
+     12e:	cf 91       	pop	r28
+     130:	08 95       	ret
+
+00000132 <draw_welcome>:
+
+static void draw_welcome(void)
+{
+    screen = SCREEN_WELCOME;
+     132:	10 92 c4 03 	sts	0x03C4, r1	; 0x8003c4 <screen+0x1>
+     136:	10 92 c3 03 	sts	0x03C3, r1	; 0x8003c3 <screen>
+    scroll_position = 0;
+     13a:	10 92 bc 03 	sts	0x03BC, r1	; 0x8003bc <scroll_position>
+    scroll_forward = 1;
+     13e:	81 e0       	ldi	r24, 0x01	; 1
+     140:	80 93 bb 03 	sts	0x03BB, r24	; 0x8003bb <scroll_forward>
+    scroll_delay = SCROLL_END_PAUSE_TICKS;
+     144:	84 e6       	ldi	r24, 0x64	; 100
+     146:	80 93 ba 03 	sts	0x03BA, r24	; 0x8003ba <scroll_delay>
+    lcd_clear();
+     14a:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+    write_row(1, "     PROJECT 01");
+     14e:	6e e8       	ldi	r22, 0x8E	; 142
+     150:	72 e0       	ldi	r23, 0x02	; 2
+     152:	81 e0       	ldi	r24, 0x01	; 1
+     154:	0e 94 67 00 	call	0xce	; 0xce <write_row>
+    draw_members();
+     158:	0c 94 7f 00 	jmp	0xfe	; 0xfe <draw_members>
+
+0000015c <draw_list>:
 }
-void relay_mode_0_2(void) { relay_set_raw(RELAY_0_BIT | RELAY_2_BIT); }
-     14a:	08 95       	ret
 
-0000014c <relay_mode_1_3>:
-
-static uint8_t relay_state;
-
-
-void relay_init(void) { relay_state = 0; }
-void relay_set_raw(uint8_t state) { relay_state = state & 0x0F; }
-     14c:	8a e0       	ldi	r24, 0x0A	; 10
-     14e:	80 93 ae 05 	sts	0x05AE, r24	; 0x8005ae <__data_end>
+// Header plus three visible entries. Scroll the four-entry LED menu vertically.
+static void draw_list(const char *title, const char *const *items,
+                      uint8_t count, uint8_t selected)
+{
+     15c:	bf 92       	push	r11
+     15e:	cf 92       	push	r12
+     160:	df 92       	push	r13
+     162:	ef 92       	push	r14
+     164:	ff 92       	push	r15
+     166:	0f 93       	push	r16
+     168:	1f 93       	push	r17
+     16a:	cf 93       	push	r28
+     16c:	df 93       	push	r29
+     16e:	8b 01       	movw	r16, r22
+     170:	b4 2e       	mov	r11, r20
+     172:	d2 2e       	mov	r13, r18
+    write_row(0, title);
+     174:	bc 01       	movw	r22, r24
+     176:	80 e0       	ldi	r24, 0x00	; 0
+     178:	0e 94 67 00 	call	0xce	; 0xce <write_row>
+    uint8_t first = selected >= 3 ? selected - 2 : 0;
+     17c:	cd 2d       	mov	r28, r13
+     17e:	82 e0       	ldi	r24, 0x02	; 2
+     180:	d8 16       	cp	r13, r24
+     182:	08 f4       	brcc	.+2      	; 0x186 <draw_list+0x2a>
+     184:	c2 e0       	ldi	r28, 0x02	; 2
+     186:	c2 50       	subi	r28, 0x02	; 2
+    for (uint8_t row = 1; row < 4; row++) {
+     188:	d1 e0       	ldi	r29, 0x01	; 1
+        uint8_t item = first + row - 1;
+        lcd_set_cursor(row, 0);
+     18a:	60 e0       	ldi	r22, 0x00	; 0
+     18c:	8d 2f       	mov	r24, r29
+     18e:	0e 94 e5 01 	call	0x3ca	; 0x3ca <lcd_set_cursor>
+        const char *text = item < count ? items[item] : "";
+     192:	cb 15       	cp	r28, r11
+     194:	60 f5       	brcc	.+88     	; 0x1ee <draw_list+0x92>
+     196:	ec 2f       	mov	r30, r28
+     198:	f0 e0       	ldi	r31, 0x00	; 0
+     19a:	ee 0f       	add	r30, r30
+     19c:	ff 1f       	adc	r31, r31
+     19e:	e0 0f       	add	r30, r16
+     1a0:	f1 1f       	adc	r31, r17
+     1a2:	e0 80       	ld	r14, Z
+     1a4:	f1 80       	ldd	r15, Z+1	; 0x01
+        lcd_send_data(item < count && item == selected ? '>' : ' ');
+     1a6:	8e e3       	ldi	r24, 0x3E	; 62
+     1a8:	cd 11       	cpse	r28, r13
+     1aa:	80 e2       	ldi	r24, 0x20	; 32
+     1ac:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+        lcd_send_data(' ');
+     1b0:	80 e2       	ldi	r24, 0x20	; 32
+     1b2:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+     1b6:	82 e1       	ldi	r24, 0x12	; 18
+     1b8:	c8 2e       	mov	r12, r24
+        for (uint8_t column = 2; column < LCD_COLUMNS; column++) {
+            if (*text) lcd_send_data((uint8_t)*text++);
+     1ba:	f7 01       	movw	r30, r14
+     1bc:	80 81       	ld	r24, Z
+     1be:	88 23       	and	r24, r24
+     1c0:	d9 f0       	breq	.+54     	; 0x1f8 <draw_list+0x9c>
+     1c2:	ff ef       	ldi	r31, 0xFF	; 255
+     1c4:	ef 1a       	sub	r14, r31
+     1c6:	ff 0a       	sbc	r15, r31
+            else lcd_send_data(' ');
+     1c8:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+     1cc:	ca 94       	dec	r12
+        uint8_t item = first + row - 1;
+        lcd_set_cursor(row, 0);
+        const char *text = item < count ? items[item] : "";
+        lcd_send_data(item < count && item == selected ? '>' : ' ');
+        lcd_send_data(' ');
+        for (uint8_t column = 2; column < LCD_COLUMNS; column++) {
+     1ce:	c1 10       	cpse	r12, r1
+     1d0:	f4 cf       	rjmp	.-24     	; 0x1ba <draw_list+0x5e>
+static void draw_list(const char *title, const char *const *items,
+                      uint8_t count, uint8_t selected)
+{
+    write_row(0, title);
+    uint8_t first = selected >= 3 ? selected - 2 : 0;
+    for (uint8_t row = 1; row < 4; row++) {
+     1d2:	df 5f       	subi	r29, 0xFF	; 255
+     1d4:	cf 5f       	subi	r28, 0xFF	; 255
+     1d6:	d4 30       	cpi	r29, 0x04	; 4
+     1d8:	c1 f6       	brne	.-80     	; 0x18a <draw_list+0x2e>
+        for (uint8_t column = 2; column < LCD_COLUMNS; column++) {
+            if (*text) lcd_send_data((uint8_t)*text++);
+            else lcd_send_data(' ');
+        }
+    }
 }
-void relay_toggle(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state ^ (1 << num));
+     1da:	df 91       	pop	r29
+     1dc:	cf 91       	pop	r28
+     1de:	1f 91       	pop	r17
+     1e0:	0f 91       	pop	r16
+     1e2:	ff 90       	pop	r15
+     1e4:	ef 90       	pop	r14
+     1e6:	df 90       	pop	r13
+     1e8:	cf 90       	pop	r12
+     1ea:	bf 90       	pop	r11
+     1ec:	08 95       	ret
+    write_row(0, title);
+    uint8_t first = selected >= 3 ? selected - 2 : 0;
+    for (uint8_t row = 1; row < 4; row++) {
+        uint8_t item = first + row - 1;
+        lcd_set_cursor(row, 0);
+        const char *text = item < count ? items[item] : "";
+     1ee:	9f ea       	ldi	r25, 0xAF	; 175
+     1f0:	e9 2e       	mov	r14, r25
+     1f2:	92 e0       	ldi	r25, 0x02	; 2
+     1f4:	f9 2e       	mov	r15, r25
+     1f6:	d9 cf       	rjmp	.-78     	; 0x1aa <draw_list+0x4e>
+        lcd_send_data(item < count && item == selected ? '>' : ' ');
+        lcd_send_data(' ');
+        for (uint8_t column = 2; column < LCD_COLUMNS; column++) {
+            if (*text) lcd_send_data((uint8_t)*text++);
+            else lcd_send_data(' ');
+     1f8:	80 e2       	ldi	r24, 0x20	; 32
+     1fa:	e6 cf       	rjmp	.-52     	; 0x1c8 <draw_list+0x6c>
+
+000001fc <display_led_value>:
+    scroll_delay = (scroll_position == 0 || scroll_position == SCROLL_MAX)
+                 ? SCROLL_END_PAUSE_TICKS : SCROLL_STEP_TICKS;
 }
-void relay_mode_0_2(void) { relay_set_raw(RELAY_0_BIT | RELAY_2_BIT); }
-void relay_mode_1_3(void) { relay_set_raw(RELAY_1_BIT | RELAY_3_BIT); }
-     152:	08 95       	ret
 
-00000154 <relay_all_on>:
+static void display_led_value(void)
+{
+     1fc:	ef 92       	push	r14
+     1fe:	ff 92       	push	r15
+     200:	0f 93       	push	r16
+     202:	1f 93       	push	r17
+     204:	cf 93       	push	r28
+     206:	df 93       	push	r29
+     208:	cd b7       	in	r28, 0x3d	; 61
+     20a:	de b7       	in	r29, 0x3e	; 62
+     20c:	28 97       	sbiw	r28, 0x08	; 8
+     20e:	0f b6       	in	r0, 0x3f	; 63
+     210:	f8 94       	cli
+     212:	de bf       	out	0x3e, r29	; 62
+     214:	0f be       	out	0x3f, r0	; 63
+     216:	cd bf       	out	0x3d, r28	; 61
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) digits[i] = SEG7_BLANK;
+     218:	8f ef       	ldi	r24, 0xFF	; 255
+     21a:	89 83       	std	Y+1, r24	; 0x01
+     21c:	8a 83       	std	Y+2, r24	; 0x02
+     21e:	8b 83       	std	Y+3, r24	; 0x03
+     220:	8c 83       	std	Y+4, r24	; 0x04
+    uint16_t value = led_value;
+     222:	e0 91 bd 03 	lds	r30, 0x03BD	; 0x8003bd <led_value>
+     226:	f0 91 be 03 	lds	r31, 0x03BE	; 0x8003be <led_value+0x1>
+    for (uint8_t i = 0; i < 4; i++) {
+        digits[SEG7_NUM_DIGITS - 1 - i] = value % 10;
+     22a:	2a e0       	ldi	r18, 0x0A	; 10
+     22c:	30 e0       	ldi	r19, 0x00	; 0
+     22e:	cf 01       	movw	r24, r30
+     230:	b9 01       	movw	r22, r18
+     232:	0e 94 21 0a 	call	0x1442	; 0x1442 <__udivmodhi4>
+     236:	88 87       	std	Y+8, r24	; 0x08
+     238:	cb 01       	movw	r24, r22
+     23a:	b9 01       	movw	r22, r18
+     23c:	0e 94 21 0a 	call	0x1442	; 0x1442 <__udivmodhi4>
+     240:	8f 83       	std	Y+7, r24	; 0x07
+        value /= 10;
+     242:	cf 01       	movw	r24, r30
+     244:	64 e6       	ldi	r22, 0x64	; 100
+     246:	70 e0       	ldi	r23, 0x00	; 0
+     248:	0e 94 21 0a 	call	0x1442	; 0x1442 <__udivmodhi4>
+     24c:	cb 01       	movw	r24, r22
+{
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) digits[i] = SEG7_BLANK;
+    uint16_t value = led_value;
+    for (uint8_t i = 0; i < 4; i++) {
+        digits[SEG7_NUM_DIGITS - 1 - i] = value % 10;
+     24e:	b9 01       	movw	r22, r18
+     250:	0e 94 21 0a 	call	0x1442	; 0x1442 <__udivmodhi4>
+     254:	8e 83       	std	Y+6, r24	; 0x06
+        value /= 10;
+     256:	cf 01       	movw	r24, r30
+     258:	68 ee       	ldi	r22, 0xE8	; 232
+     25a:	73 e0       	ldi	r23, 0x03	; 3
+     25c:	0e 94 21 0a 	call	0x1442	; 0x1442 <__udivmodhi4>
+     260:	cb 01       	movw	r24, r22
+{
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) digits[i] = SEG7_BLANK;
+    uint16_t value = led_value;
+    for (uint8_t i = 0; i < 4; i++) {
+        digits[SEG7_NUM_DIGITS - 1 - i] = value % 10;
+     262:	b9 01       	movw	r22, r18
+     264:	0e 94 21 0a 	call	0x1442	; 0x1442 <__udivmodhi4>
+     268:	8d 83       	std	Y+5, r24	; 0x05
+        value /= 10;
+    }
+    seg7_set_dp_mask(0);
+     26a:	80 e0       	ldi	r24, 0x00	; 0
+     26c:	0e 94 aa 03 	call	0x754	; 0x754 <seg7_set_dp_mask>
+    seg7_set_array(digits);
+     270:	ce 01       	movw	r24, r28
+     272:	01 96       	adiw	r24, 0x01	; 1
+     274:	0e 94 b9 02 	call	0x572	; 0x572 <seg7_set_array>
 
-static uint8_t relay_state;
+    lcd_set_cursor(1, 0);
+     278:	60 e0       	ldi	r22, 0x00	; 0
+     27a:	81 e0       	ldi	r24, 0x01	; 1
+     27c:	0e 94 e5 01 	call	0x3ca	; 0x3ca <lcd_set_cursor>
+    lcd_send_string("VALUE: ");
+     280:	8e e9       	ldi	r24, 0x9E	; 158
+     282:	92 e0       	ldi	r25, 0x02	; 2
+     284:	0e 94 f6 01 	call	0x3ec	; 0x3ec <lcd_send_string>
+     288:	8e 01       	movw	r16, r28
+     28a:	0b 5f       	subi	r16, 0xFB	; 251
+     28c:	1f 4f       	sbci	r17, 0xFF	; 255
+     28e:	7e 01       	movw	r14, r28
+     290:	89 e0       	ldi	r24, 0x09	; 9
+     292:	e8 0e       	add	r14, r24
+     294:	f1 1c       	adc	r15, r1
+    for (uint8_t i = SEG7_NUM_DIGITS - 4; i < SEG7_NUM_DIGITS; i++)
+        lcd_send_data('0' + digits[i]);
+     296:	f8 01       	movw	r30, r16
+     298:	81 91       	ld	r24, Z+
+     29a:	8f 01       	movw	r16, r30
+     29c:	80 5d       	subi	r24, 0xD0	; 208
+     29e:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+    seg7_set_dp_mask(0);
+    seg7_set_array(digits);
 
-
-void relay_init(void) { relay_state = 0; }
-void relay_set_raw(uint8_t state) { relay_state = state & 0x0F; }
-     154:	8f e0       	ldi	r24, 0x0F	; 15
-     156:	80 93 ae 05 	sts	0x05AE, r24	; 0x8005ae <__data_end>
-void relay_toggle(uint8_t num) {
-    if (num < 4) relay_set_raw(relay_state ^ (1 << num));
+    lcd_set_cursor(1, 0);
+    lcd_send_string("VALUE: ");
+    for (uint8_t i = SEG7_NUM_DIGITS - 4; i < SEG7_NUM_DIGITS; i++)
+     2a2:	0e 15       	cp	r16, r14
+     2a4:	1f 05       	cpc	r17, r15
+     2a6:	b9 f7       	brne	.-18     	; 0x296 <display_led_value+0x9a>
+        lcd_send_data('0' + digits[i]);
+    lcd_send_string("         ");
+     2a8:	86 ea       	ldi	r24, 0xA6	; 166
+     2aa:	92 e0       	ldi	r25, 0x02	; 2
+     2ac:	0e 94 f6 01 	call	0x3ec	; 0x3ec <lcd_send_string>
 }
-void relay_mode_0_2(void) { relay_set_raw(RELAY_0_BIT | RELAY_2_BIT); }
-void relay_mode_1_3(void) { relay_set_raw(RELAY_1_BIT | RELAY_3_BIT); }
-void relay_all_on(void) { relay_set_raw(0x0F); }
-     15a:	08 95       	ret
+     2b0:	28 96       	adiw	r28, 0x08	; 8
+     2b2:	0f b6       	in	r0, 0x3f	; 63
+     2b4:	f8 94       	cli
+     2b6:	de bf       	out	0x3e, r29	; 62
+     2b8:	0f be       	out	0x3f, r0	; 63
+     2ba:	cd bf       	out	0x3d, r28	; 61
+     2bc:	df 91       	pop	r29
+     2be:	cf 91       	pop	r28
+     2c0:	1f 91       	pop	r17
+     2c2:	0f 91       	pop	r16
+     2c4:	ff 90       	pop	r15
+     2c6:	ef 90       	pop	r14
+     2c8:	08 95       	ret
 
-0000015c <relay_all_off>:
-
-static uint8_t relay_state;
-
-
-void relay_init(void) { relay_state = 0; }
-void relay_set_raw(uint8_t state) { relay_state = state & 0x0F; }
-     15c:	10 92 ae 05 	sts	0x05AE, r1	; 0x8005ae <__data_end>
-    if (num < 4) relay_set_raw(relay_state ^ (1 << num));
+000002ca <draw_menu>:
+    draw_members();
 }
-void relay_mode_0_2(void) { relay_set_raw(RELAY_0_BIT | RELAY_2_BIT); }
-void relay_mode_1_3(void) { relay_set_raw(RELAY_1_BIT | RELAY_3_BIT); }
-void relay_all_on(void) { relay_set_raw(0x0F); }
-void relay_all_off(void) { relay_set_raw(0); }
-     160:	08 95       	ret
 
-00000162 <__vector_12>:
-#include <util/atomic.h>
+static void draw_menu(void)
+{
+    if (screen == SCREEN_DEVICES)
+     2ca:	80 91 c3 03 	lds	r24, 0x03C3	; 0x8003c3 <screen>
+     2ce:	90 91 c4 03 	lds	r25, 0x03C4	; 0x8003c4 <screen+0x1>
+     2d2:	81 30       	cpi	r24, 0x01	; 1
+     2d4:	91 05       	cpc	r25, r1
+     2d6:	49 f4       	brne	.+18     	; 0x2ea <draw_menu+0x20>
+        draw_list("DEVICE:", devices, 2, device_selection);
+     2d8:	20 91 c2 03 	lds	r18, 0x03C2	; 0x8003c2 <device_selection>
+     2dc:	42 e0       	ldi	r20, 0x02	; 2
+     2de:	60 ef       	ldi	r22, 0xF0	; 240
+     2e0:	71 e0       	ldi	r23, 0x01	; 1
+     2e2:	80 eb       	ldi	r24, 0xB0	; 176
+     2e4:	92 e0       	ldi	r25, 0x02	; 2
+    else if (screen == SCREEN_LED_MENU)
+        draw_list("LED:", led_modes, 4, led_selection);
+    else if (screen == SCREEN_RELAY_MENU)
+        draw_list("RELAY:", relay_modes, 2, relay_selection);
+     2e6:	0c 94 ae 00 	jmp	0x15c	; 0x15c <draw_list>
 
-// Button latch OE must connect to PG1/RD_L, with its 10k pull-up retained.
-// Real LCD/buttons/7-segment clock; relay outputs remain simulated.
+static void draw_menu(void)
+{
+    if (screen == SCREEN_DEVICES)
+        draw_list("DEVICE:", devices, 2, device_selection);
+    else if (screen == SCREEN_LED_MENU)
+     2ea:	82 30       	cpi	r24, 0x02	; 2
+     2ec:	91 05       	cpc	r25, r1
+     2ee:	41 f4       	brne	.+16     	; 0x300 <draw_menu+0x36>
+        draw_list("LED:", led_modes, 4, led_selection);
+     2f0:	20 91 c1 03 	lds	r18, 0x03C1	; 0x8003c1 <led_selection>
+     2f4:	44 e0       	ldi	r20, 0x04	; 4
+     2f6:	68 ee       	ldi	r22, 0xE8	; 232
+     2f8:	71 e0       	ldi	r23, 0x01	; 1
+     2fa:	88 eb       	ldi	r24, 0xB8	; 184
+     2fc:	92 e0       	ldi	r25, 0x02	; 2
+     2fe:	f3 cf       	rjmp	.-26     	; 0x2e6 <draw_menu+0x1c>
+    else if (screen == SCREEN_RELAY_MENU)
+     300:	04 97       	sbiw	r24, 0x04	; 4
+     302:	41 f4       	brne	.+16     	; 0x314 <draw_menu+0x4a>
+        draw_list("RELAY:", relay_modes, 2, relay_selection);
+     304:	20 91 c0 03 	lds	r18, 0x03C0	; 0x8003c0 <relay_selection>
+     308:	42 e0       	ldi	r20, 0x02	; 2
+     30a:	64 ee       	ldi	r22, 0xE4	; 228
+     30c:	71 e0       	ldi	r23, 0x01	; 1
+     30e:	8d eb       	ldi	r24, 0xBD	; 189
+     310:	92 e0       	ldi	r25, 0x02	; 2
+     312:	e9 cf       	rjmp	.-46     	; 0x2e6 <draw_menu+0x1c>
+}
+     314:	08 95       	ret
+
+00000316 <__vector_12>:
+static uint8_t scroll_forward;
+static uint8_t scroll_delay;
 static volatile uint16_t ticks;
-ISR(TIMER1_COMPA_vect) {
-     162:	1f 92       	push	r1
-     164:	0f 92       	push	r0
-     166:	0f b6       	in	r0, 0x3f	; 63
-     168:	0f 92       	push	r0
-     16a:	11 24       	eor	r1, r1
-     16c:	8f 93       	push	r24
-     16e:	9f 93       	push	r25
-  ticks++;
-     170:	80 91 af 05 	lds	r24, 0x05AF	; 0x8005af <ticks>
-     174:	90 91 b0 05 	lds	r25, 0x05B0	; 0x8005b0 <ticks+0x1>
-     178:	01 96       	adiw	r24, 0x01	; 1
-     17a:	90 93 b0 05 	sts	0x05B0, r25	; 0x8005b0 <ticks+0x1>
-     17e:	80 93 af 05 	sts	0x05AF, r24	; 0x8005af <ticks>
+
+ISR(TIMER1_COMPA_vect)
+{
+     316:	1f 92       	push	r1
+     318:	0f 92       	push	r0
+     31a:	0f b6       	in	r0, 0x3f	; 63
+     31c:	0f 92       	push	r0
+     31e:	11 24       	eor	r1, r1
+     320:	8f 93       	push	r24
+     322:	9f 93       	push	r25
+    ticks++;
+     324:	80 91 b8 03 	lds	r24, 0x03B8	; 0x8003b8 <__data_end>
+     328:	90 91 b9 03 	lds	r25, 0x03B9	; 0x8003b9 <__data_end+0x1>
+     32c:	01 96       	adiw	r24, 0x01	; 1
+     32e:	90 93 b9 03 	sts	0x03B9, r25	; 0x8003b9 <__data_end+0x1>
+     332:	80 93 b8 03 	sts	0x03B8, r24	; 0x8003b8 <__data_end>
 }
-     182:	9f 91       	pop	r25
-     184:	8f 91       	pop	r24
-     186:	0f 90       	pop	r0
-     188:	0f be       	out	0x3f, r0	; 63
-     18a:	0f 90       	pop	r0
-     18c:	1f 90       	pop	r1
-     18e:	18 95       	reti
+     336:	9f 91       	pop	r25
+     338:	8f 91       	pop	r24
+     33a:	0f 90       	pop	r0
+     33c:	0f be       	out	0x3f, r0	; 63
+     33e:	0f 90       	pop	r0
+     340:	1f 90       	pop	r1
+     342:	18 95       	reti
 
-00000190 <lcd_send_cmd>:
-#define PG4 4
+00000344 <lcd_write>:
 
-#include <avr/interrupt.h>
-
-void lcd_send_cmd(uint8_t cmd) {
+/* Main-context API: ISRs may use the shared bus, but must not call the LCD.
+ * Keep RS, the data latch, and E atomic; leave execution waits interruptible.
+ */
+static void lcd_write(uint8_t value, uint8_t is_data) {
   uint8_t sreg = SREG;
-     190:	2f b7       	in	r18, 0x3f	; 63
-  cli();                      // Protect RS, latched data, and the E pulse
-     192:	f8 94       	cli
-  PORTG_REG &= ~(1 << PG4);   // Dedicated LCD RS LOW: command
-     194:	e5 e6       	ldi	r30, 0x65	; 101
-     196:	f0 e0       	ldi	r31, 0x00	; 0
-     198:	90 81       	ld	r25, Z
-     19a:	9f 7e       	andi	r25, 0xEF	; 239
-     19c:	90 83       	st	Z, r25
+     344:	2f b7       	in	r18, 0x3f	; 63
+  cli();
+     346:	f8 94       	cli
+  if (is_data) {
+    PORTG |= LCD_RS_MASK;
+     348:	90 91 65 00 	lds	r25, 0x0065	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
+ * Keep RS, the data latch, and E atomic; leave execution waits interruptible.
+ */
+static void lcd_write(uint8_t value, uint8_t is_data) {
+  uint8_t sreg = SREG;
+  cli();
+  if (is_data) {
+     34c:	66 23       	and	r22, r22
+     34e:	d1 f0       	breq	.+52     	; 0x384 <lcd_write+0x40>
+    PORTG |= LCD_RS_MASK;
+     350:	90 61       	ori	r25, 0x10	; 16
+     352:	90 93 65 00 	sts	0x0065, r25	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
 void io_bus_init(void);
 void io_bus_write(uint16_t address, uint8_t data);
 uint8_t io_bus_read(uint16_t address);
 #else
 static inline void io_bus_write(uint16_t address, uint8_t data) {
     *(volatile uint8_t *)(uintptr_t)address = data;
-     19e:	80 93 02 11 	sts	0x1102, r24	; 0x801102 <__bss_end+0xb2f>
+     356:	80 93 01 11 	sts	0x1101, r24	; 0x801101 <__bss_end+0xce3>
     can be achieved.
 */
 void
 _delay_loop_1(uint8_t __count)
 {
 	__asm__ volatile (
-     1a2:	85 e0       	ldi	r24, 0x05	; 5
-     1a4:	98 2f       	mov	r25, r24
-     1a6:	9a 95       	dec	r25
-     1a8:	f1 f7       	brne	.-4      	; 0x1a6 <lcd_send_cmd+0x16>
-  io_bus_write(EXTERNAL_MEM + CSEL2, cmd);          // CSEL2 loads the LCD data latch
+     35a:	85 e0       	ldi	r24, 0x05	; 5
+     35c:	98 2f       	mov	r25, r24
+     35e:	9a 95       	dec	r25
+     360:	f1 f7       	brne	.-4      	; 0x35e <lcd_write+0x1a>
+  } else {
+    PORTG &= ~LCD_RS_MASK;
+    io_bus_write(EXTERNAL_MEM + CSEL2, value);
+  }
   _delay_us(1);
-  PORTG_REG |= (1 << PG3);    // LCD_E HIGH
-     1aa:	90 81       	ld	r25, Z
-     1ac:	98 60       	ori	r25, 0x08	; 8
-     1ae:	90 83       	st	Z, r25
-     1b0:	9a e0       	ldi	r25, 0x0A	; 10
-     1b2:	9a 95       	dec	r25
-     1b4:	f1 f7       	brne	.-4      	; 0x1b2 <lcd_send_cmd+0x22>
-  _delay_us(2);               // HD44780 requires > 450 ns
-  PORTG_REG &= ~(1 << PG3);   // LCD_E LOW (falling edge latches command)
-     1b6:	90 81       	ld	r25, Z
-     1b8:	97 7f       	andi	r25, 0xF7	; 247
-     1ba:	90 83       	st	Z, r25
-     1bc:	8a 95       	dec	r24
-     1be:	f1 f7       	brne	.-4      	; 0x1bc <lcd_send_cmd+0x2c>
-  _delay_us(1);               // Hold RS and data after E falls
-  SREG = sreg;                // Restore interrupts
-     1c0:	2f bf       	out	0x3f, r18	; 63
+  PORTG |= LCD_E_MASK;
+     362:	90 91 65 00 	lds	r25, 0x0065	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
+     366:	98 60       	ori	r25, 0x08	; 8
+     368:	90 93 65 00 	sts	0x0065, r25	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
+     36c:	9a e0       	ldi	r25, 0x0A	; 10
+     36e:	9a 95       	dec	r25
+     370:	f1 f7       	brne	.-4      	; 0x36e <lcd_write+0x2a>
+  _delay_us(2);
+  PORTG &= ~LCD_E_MASK;
+     372:	90 91 65 00 	lds	r25, 0x0065	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
+     376:	97 7f       	andi	r25, 0xF7	; 247
+     378:	90 93 65 00 	sts	0x0065, r25	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
+     37c:	8a 95       	dec	r24
+     37e:	f1 f7       	brne	.-4      	; 0x37c <lcd_write+0x38>
+  _delay_us(1);
+  SREG = sreg;
+     380:	2f bf       	out	0x3f, r18	; 63
+}
+     382:	08 95       	ret
+  cli();
+  if (is_data) {
+    PORTG |= LCD_RS_MASK;
+    io_bus_write(EXTERNAL_MEM + CSEL1, value);
+  } else {
+    PORTG &= ~LCD_RS_MASK;
+     384:	9f 7e       	andi	r25, 0xEF	; 239
+     386:	90 93 65 00 	sts	0x0065, r25	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
+     38a:	80 93 02 11 	sts	0x1102, r24	; 0x801102 <__bss_end+0xce4>
+     38e:	e5 cf       	rjmp	.-54     	; 0x35a <lcd_write+0x16>
+
+00000390 <lcd_send_cmd>:
+  PORTG &= ~LCD_E_MASK;
+  _delay_us(1);
+  SREG = sreg;
+}
+
+void lcd_send_cmd(uint8_t cmd) {
+     390:	cf 93       	push	r28
+     392:	c8 2f       	mov	r28, r24
+  lcd_write(cmd, 0);
+     394:	60 e0       	ldi	r22, 0x00	; 0
+     396:	0e 94 a2 01 	call	0x344	; 0x344 <lcd_write>
+  /* Clear and both return-home encodings need a long wait. R/W is grounded.
+   * HD44780U: 1.52 ms / 37 us at 270 kHz; allow for a 190 kHz oscillator.
+   */
+  if (cmd == 0x01 || (cmd & 0xFE) == 0x02) {
+     39a:	c1 30       	cpi	r28, 0x01	; 1
+     39c:	29 f0       	breq	.+10     	; 0x3a8 <lcd_send_cmd+0x18>
+     39e:	ce 7f       	andi	r28, 0xFE	; 254
     milliseconds can be achieved.
  */
 void
 _delay_loop_2(uint16_t __count)
 {
 	__asm__ volatile (
-     1c2:	80 e9       	ldi	r24, 0x90	; 144
-     1c4:	91 e0       	ldi	r25, 0x01	; 1
-     1c6:	01 97       	sbiw	r24, 0x01	; 1
-     1c8:	f1 f7       	brne	.-4      	; 0x1c6 <lcd_send_cmd+0x36>
-  _delay_us(100);             // Standard command execution time (> 37 us)
+     3a0:	80 ef       	ldi	r24, 0xF0	; 240
+     3a2:	90 e0       	ldi	r25, 0x00	; 0
+     3a4:	c2 30       	cpi	r28, 0x02	; 2
+     3a6:	11 f4       	brne	.+4      	; 0x3ac <lcd_send_cmd+0x1c>
+     3a8:	80 ee       	ldi	r24, 0xE0	; 224
+     3aa:	9e e2       	ldi	r25, 0x2E	; 46
+     3ac:	01 97       	sbiw	r24, 0x01	; 1
+     3ae:	f1 f7       	brne	.-4      	; 0x3ac <lcd_send_cmd+0x1c>
+    _delay_ms(3);
+  } else {
+    _delay_us(60);
+  }
 }
-     1ca:	08 95       	ret
+     3b0:	cf 91       	pop	r28
+     3b2:	08 95       	ret
 
-000001cc <lcd_send_data>:
-
+000003b4 <lcd_send_data>:
 
 void lcd_send_data(uint8_t data) {
-  uint8_t sreg = SREG;
-     1cc:	2f b7       	in	r18, 0x3f	; 63
-  cli();                      // Protect RS, latched data, and the E pulse
-     1ce:	f8 94       	cli
-  PORTG_REG |= (1 << PG4);    // Dedicated LCD RS HIGH: character data
-     1d0:	e5 e6       	ldi	r30, 0x65	; 101
-     1d2:	f0 e0       	ldi	r31, 0x00	; 0
-     1d4:	90 81       	ld	r25, Z
-     1d6:	90 61       	ori	r25, 0x10	; 16
-     1d8:	90 83       	st	Z, r25
-     1da:	80 93 01 11 	sts	0x1101, r24	; 0x801101 <__bss_end+0xb2e>
-    can be achieved.
-*/
-void
-_delay_loop_1(uint8_t __count)
-{
-	__asm__ volatile (
-     1de:	85 e0       	ldi	r24, 0x05	; 5
-     1e0:	98 2f       	mov	r25, r24
-     1e2:	9a 95       	dec	r25
-     1e4:	f1 f7       	brne	.-4      	; 0x1e2 <lcd_send_data+0x16>
-  io_bus_write(EXTERNAL_MEM + CSEL1, data);        // CSEL1 loads the LCD data latch
-
-  _delay_us(1);
-  PORTG_REG |= (1 << PG3);    // LCD_E HIGH
-     1e6:	90 81       	ld	r25, Z
-     1e8:	98 60       	ori	r25, 0x08	; 8
-     1ea:	90 83       	st	Z, r25
-     1ec:	9a e0       	ldi	r25, 0x0A	; 10
-     1ee:	9a 95       	dec	r25
-     1f0:	f1 f7       	brne	.-4      	; 0x1ee <lcd_send_data+0x22>
-  _delay_us(2);               // HD44780 requires > 450 ns
-  PORTG_REG &= ~(1 << PG3);   // LCD_E LOW (falling edge latches data)
-     1f2:	90 81       	ld	r25, Z
-     1f4:	97 7f       	andi	r25, 0xF7	; 247
-     1f6:	90 83       	st	Z, r25
-     1f8:	8a 95       	dec	r24
-     1fa:	f1 f7       	brne	.-4      	; 0x1f8 <lcd_send_data+0x2c>
-  _delay_us(1);               // Hold RS and data after E falls
-  SREG = sreg;                // Restore interrupts
-     1fc:	2f bf       	out	0x3f, r18	; 63
-    milliseconds can be achieved.
- */
-void
-_delay_loop_2(uint16_t __count)
-{
-	__asm__ volatile (
-     1fe:	88 ec       	ldi	r24, 0xC8	; 200
-     200:	90 e0       	ldi	r25, 0x00	; 0
-     202:	01 97       	sbiw	r24, 0x01	; 1
-     204:	f1 f7       	brne	.-4      	; 0x202 <lcd_send_data+0x36>
-
-  _delay_us(50);              // Standard data execution time (> 43 us)
+  lcd_write(data, 1);
+     3b4:	61 e0       	ldi	r22, 0x01	; 1
+     3b6:	0e 94 a2 01 	call	0x344	; 0x344 <lcd_write>
+     3ba:	80 ef       	ldi	r24, 0xF0	; 240
+     3bc:	90 e0       	ldi	r25, 0x00	; 0
+     3be:	01 97       	sbiw	r24, 0x01	; 1
+     3c0:	f1 f7       	brne	.-4      	; 0x3be <lcd_send_data+0xa>
+  /* Includes oscillator margin and the address-counter update time. */
+  _delay_us(60);
 }
-     206:	08 95       	ret
+     3c2:	08 95       	ret
 
-00000208 <lcd_clear>:
-  lcd_send_cmd(0x06);
+000003c4 <lcd_clear>:
+  lcd_send_cmd(0x06); // Increment cursor, no display shift
   _delay_ms(5);
 }
 
 void lcd_clear(void) {
   lcd_send_cmd(0x01);
-     208:	81 e0       	ldi	r24, 0x01	; 1
-     20a:	0e 94 c8 00 	call	0x190	; 0x190 <lcd_send_cmd>
-     20e:	80 e4       	ldi	r24, 0x40	; 64
-     210:	9c e9       	ldi	r25, 0x9C	; 156
-     212:	01 97       	sbiw	r24, 0x01	; 1
-     214:	f1 f7       	brne	.-4      	; 0x212 <lcd_clear+0xa>
-  _delay_ms(10);
-}
-     216:	08 95       	ret
+     3c4:	81 e0       	ldi	r24, 0x01	; 1
+     3c6:	0c 94 c8 01 	jmp	0x390	; 0x390 <lcd_send_cmd>
 
-00000218 <lcd_init>:
-  SREG = sreg;                // Restore interrupts
-
-  _delay_us(50);              // Standard data execution time (> 43 us)
+000003ca <lcd_set_cursor>:
 }
 
-void lcd_init(void){
-     218:	0f 93       	push	r16
-     21a:	1f 93       	push	r17
-     21c:	cf 93       	push	r28
-     21e:	df 93       	push	r29
+void lcd_set_cursor(uint8_t row, uint8_t col) {
+     3ca:	84 30       	cpi	r24, 0x04	; 4
+     3cc:	08 f0       	brcs	.+2      	; 0x3d0 <lcd_set_cursor+0x6>
+     3ce:	83 e0       	ldi	r24, 0x03	; 3
+  if (row > 3) row = 3;
+  /* 20x4 DDRAM row bases: 0x00, 0x40, 0x14, 0x54.
+   * Compute them without an SRAM table or stack copy.
+   */
+  uint8_t offset = ((row & 1) ? 0x40 : 0) + ((row & 2) ? 0x14 : 0);
+     3d0:	90 e4       	ldi	r25, 0x40	; 64
+     3d2:	89 9f       	mul	r24, r25
+     3d4:	90 01       	movw	r18, r0
+     3d6:	11 24       	eor	r1, r1
+     3d8:	20 74       	andi	r18, 0x40	; 64
+     3da:	90 e0       	ldi	r25, 0x00	; 0
+     3dc:	81 fd       	sbrc	r24, 1
+     3de:	94 e1       	ldi	r25, 0x14	; 20
+  lcd_send_cmd(0x80 | (col + offset));
+     3e0:	82 2f       	mov	r24, r18
+     3e2:	86 0f       	add	r24, r22
+     3e4:	89 0f       	add	r24, r25
+     3e6:	80 68       	ori	r24, 0x80	; 128
+     3e8:	0c 94 c8 01 	jmp	0x390	; 0x390 <lcd_send_cmd>
+
+000003ec <lcd_send_string>:
+}
+
+void lcd_send_string(const char *str) {
+     3ec:	cf 93       	push	r28
+     3ee:	df 93       	push	r29
+     3f0:	ec 01       	movw	r28, r24
+  while (*str) lcd_send_data((uint8_t)*str++);
+     3f2:	89 91       	ld	r24, Y+
+     3f4:	81 11       	cpse	r24, r1
+     3f6:	03 c0       	rjmp	.+6      	; 0x3fe <lcd_send_string+0x12>
+}
+     3f8:	df 91       	pop	r29
+     3fa:	cf 91       	pop	r28
+     3fc:	08 95       	ret
+  uint8_t offset = ((row & 1) ? 0x40 : 0) + ((row & 2) ? 0x14 : 0);
+  lcd_send_cmd(0x80 | (col + offset));
+}
+
+void lcd_send_string(const char *str) {
+  while (*str) lcd_send_data((uint8_t)*str++);
+     3fe:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+     402:	f7 cf       	rjmp	.-18     	; 0x3f2 <lcd_send_string+0x6>
+
+00000404 <lcd_send_string_animated>:
+}
+
+void lcd_send_string_animated(const char *str, uint16_t delay_ms_per_char) {
+     404:	ef 92       	push	r14
+     406:	ff 92       	push	r15
+     408:	0f 93       	push	r16
+     40a:	1f 93       	push	r17
+     40c:	cf 93       	push	r28
+     40e:	df 93       	push	r29
+     410:	8b 01       	movw	r16, r22
+     412:	ec 01       	movw	r28, r24
+     414:	80 ea       	ldi	r24, 0xA0	; 160
+     416:	e8 2e       	mov	r14, r24
+     418:	8f e0       	ldi	r24, 0x0F	; 15
+     41a:	f8 2e       	mov	r15, r24
+  while (*str) {
+     41c:	89 91       	ld	r24, Y+
+     41e:	81 11       	cpse	r24, r1
+     420:	07 c0       	rjmp	.+14     	; 0x430 <lcd_send_string_animated+0x2c>
+    lcd_send_data((uint8_t)*str++);
+    for (uint16_t i = 0; i < delay_ms_per_char; i++) _delay_ms(1);
+  }
+}
+     422:	df 91       	pop	r29
+     424:	cf 91       	pop	r28
+     426:	1f 91       	pop	r17
+     428:	0f 91       	pop	r16
+     42a:	ff 90       	pop	r15
+     42c:	ef 90       	pop	r14
+     42e:	08 95       	ret
+  while (*str) lcd_send_data((uint8_t)*str++);
+}
+
+void lcd_send_string_animated(const char *str, uint16_t delay_ms_per_char) {
+  while (*str) {
+    lcd_send_data((uint8_t)*str++);
+     430:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+    for (uint16_t i = 0; i < delay_ms_per_char; i++) _delay_ms(1);
+     434:	90 e0       	ldi	r25, 0x00	; 0
+     436:	80 e0       	ldi	r24, 0x00	; 0
+     438:	80 17       	cp	r24, r16
+     43a:	91 07       	cpc	r25, r17
+     43c:	79 f3       	breq	.-34     	; 0x41c <lcd_send_string_animated+0x18>
+     43e:	f7 01       	movw	r30, r14
+     440:	31 97       	sbiw	r30, 0x01	; 1
+     442:	f1 f7       	brne	.-4      	; 0x440 <lcd_send_string_animated+0x3c>
+     444:	01 96       	adiw	r24, 0x01	; 1
+     446:	f8 cf       	rjmp	.-16     	; 0x438 <lcd_send_string_animated+0x34>
+
+00000448 <lcd_display>:
+  }
+}
+
+void lcd_display(void) {
+  lcd_send_cmd(0x0C);
+     448:	8c e0       	ldi	r24, 0x0C	; 12
+     44a:	0c 94 c8 01 	jmp	0x390	; 0x390 <lcd_send_cmd>
+
+0000044e <lcd_init>:
+  lcd_write(data, 1);
+  /* Includes oscillator margin and the address-counter update time. */
+  _delay_us(60);
+}
+
+void lcd_init(void) {
+     44e:	0f 93       	push	r16
+     450:	1f 93       	push	r17
+     452:	cf 93       	push	r28
+     454:	df 93       	push	r29
   // PG3 = LCD E, PG4 = LCD RS. RS must be disconnected from latched A0.
   // AS0=0 leaves PG3/PG4 as GPIO rather than asynchronous timer pins.
   ASSR &= ~(1 << AS0);
-     220:	80 b7       	in	r24, 0x30	; 48
-     222:	87 7f       	andi	r24, 0xF7	; 247
-     224:	80 bf       	out	0x30, r24	; 48
-  PORTG_REG &= ~((1 << PG3) | (1 << PG4));
-     226:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
-     22a:	87 7e       	andi	r24, 0xE7	; 231
-     22c:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
-  DDRG_REG |= (1 << PG3) | (1 << PG4);
-     230:	80 91 64 00 	lds	r24, 0x0064	; 0x800064 <__TEXT_REGION_LENGTH__+0x7e0064>
-     234:	88 61       	ori	r24, 0x18	; 24
-     236:	80 93 64 00 	sts	0x0064, r24	; 0x800064 <__TEXT_REGION_LENGTH__+0x7e0064>
-     23a:	88 ee       	ldi	r24, 0xE8	; 232
-     23c:	93 e0       	ldi	r25, 0x03	; 3
-     23e:	20 e9       	ldi	r18, 0x90	; 144
-     240:	31 e0       	ldi	r19, 0x01	; 1
-     242:	f9 01       	movw	r30, r18
-     244:	31 97       	sbiw	r30, 0x01	; 1
-     246:	f1 f7       	brne	.-4      	; 0x244 <lcd_init+0x2c>
-     248:	01 97       	sbiw	r24, 0x01	; 1
+     456:	80 b7       	in	r24, 0x30	; 48
+     458:	87 7f       	andi	r24, 0xF7	; 247
+     45a:	80 bf       	out	0x30, r24	; 48
+  PORTG &= ~(LCD_E_MASK | LCD_RS_MASK);
+     45c:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
+     460:	87 7e       	andi	r24, 0xE7	; 231
+     462:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <__TEXT_REGION_LENGTH__+0x7e0065>
+  DDRG |= LCD_E_MASK | LCD_RS_MASK;
+     466:	80 91 64 00 	lds	r24, 0x0064	; 0x800064 <__TEXT_REGION_LENGTH__+0x7e0064>
+     46a:	88 61       	ori	r24, 0x18	; 24
+     46c:	80 93 64 00 	sts	0x0064, r24	; 0x800064 <__TEXT_REGION_LENGTH__+0x7e0064>
+     470:	88 ee       	ldi	r24, 0xE8	; 232
+     472:	93 e0       	ldi	r25, 0x03	; 3
+     474:	20 e9       	ldi	r18, 0x90	; 144
+     476:	31 e0       	ldi	r19, 0x01	; 1
+     478:	f9 01       	movw	r30, r18
+     47a:	31 97       	sbiw	r30, 0x01	; 1
+     47c:	f1 f7       	brne	.-4      	; 0x47a <lcd_init+0x2c>
+     47e:	01 97       	sbiw	r24, 0x01	; 1
 		__ticks = 1;
 	else if (__tmp > 65535)
 	{
 		//	__ticks = requested delay in 1/10 ms
 		__ticks = (uint16_t) (__ms * 10.0);
 		while(__ticks)
-     24a:	d9 f7       	brne	.-10     	; 0x242 <lcd_init+0x2a>
+     480:	d9 f7       	brne	.-10     	; 0x478 <lcd_init+0x2a>
 
-  // Power-on delay for HD44780
+  // Retain the board's conservative startup/recovery sequence.
   _delay_ms(100);
-
-  // Standard HD44780 8-bit initialization sequence
   lcd_send_cmd(0x38);
-     24c:	88 e3       	ldi	r24, 0x38	; 56
-     24e:	0e 94 c8 00 	call	0x190	; 0x190 <lcd_send_cmd>
-     252:	00 e4       	ldi	r16, 0x40	; 64
-     254:	1c e9       	ldi	r17, 0x9C	; 156
-     256:	c8 01       	movw	r24, r16
-     258:	01 97       	sbiw	r24, 0x01	; 1
-     25a:	f1 f7       	brne	.-4      	; 0x258 <lcd_init+0x40>
+     482:	88 e3       	ldi	r24, 0x38	; 56
+     484:	0e 94 c8 01 	call	0x390	; 0x390 <lcd_send_cmd>
+     488:	00 e4       	ldi	r16, 0x40	; 64
+     48a:	1c e9       	ldi	r17, 0x9C	; 156
+     48c:	c8 01       	movw	r24, r16
+     48e:	01 97       	sbiw	r24, 0x01	; 1
+     490:	f1 f7       	brne	.-4      	; 0x48e <lcd_init+0x40>
   _delay_ms(10);
   lcd_send_cmd(0x38);
-     25c:	88 e3       	ldi	r24, 0x38	; 56
-     25e:	0e 94 c8 00 	call	0x190	; 0x190 <lcd_send_cmd>
-     262:	c0 e2       	ldi	r28, 0x20	; 32
-     264:	de e4       	ldi	r29, 0x4E	; 78
-     266:	ce 01       	movw	r24, r28
-     268:	01 97       	sbiw	r24, 0x01	; 1
-     26a:	f1 f7       	brne	.-4      	; 0x268 <lcd_init+0x50>
+     492:	88 e3       	ldi	r24, 0x38	; 56
+     494:	0e 94 c8 01 	call	0x390	; 0x390 <lcd_send_cmd>
+     498:	c0 e2       	ldi	r28, 0x20	; 32
+     49a:	de e4       	ldi	r29, 0x4E	; 78
+     49c:	ce 01       	movw	r24, r28
+     49e:	01 97       	sbiw	r24, 0x01	; 1
+     4a0:	f1 f7       	brne	.-4      	; 0x49e <lcd_init+0x50>
   _delay_ms(5);
   lcd_send_cmd(0x38);
-     26c:	88 e3       	ldi	r24, 0x38	; 56
-     26e:	0e 94 c8 00 	call	0x190	; 0x190 <lcd_send_cmd>
-     272:	ce 01       	movw	r24, r28
-     274:	01 97       	sbiw	r24, 0x01	; 1
-     276:	f1 f7       	brne	.-4      	; 0x274 <lcd_init+0x5c>
+     4a2:	88 e3       	ldi	r24, 0x38	; 56
+     4a4:	0e 94 c8 01 	call	0x390	; 0x390 <lcd_send_cmd>
+     4a8:	ce 01       	movw	r24, r28
+     4aa:	01 97       	sbiw	r24, 0x01	; 1
+     4ac:	f1 f7       	brne	.-4      	; 0x4aa <lcd_init+0x5c>
   _delay_ms(5);
-
-  // Function set: 8-bit, 2 lines, 5x8 font
-  lcd_send_cmd(0x38);
-     278:	88 e3       	ldi	r24, 0x38	; 56
-     27a:	0e 94 c8 00 	call	0x190	; 0x190 <lcd_send_cmd>
-     27e:	ce 01       	movw	r24, r28
-     280:	01 97       	sbiw	r24, 0x01	; 1
-     282:	f1 f7       	brne	.-4      	; 0x280 <lcd_init+0x68>
+  lcd_send_cmd(0x38); // 8-bit, 2 controller lines, 5x8 font
+     4ae:	88 e3       	ldi	r24, 0x38	; 56
+     4b0:	0e 94 c8 01 	call	0x390	; 0x390 <lcd_send_cmd>
+     4b4:	ce 01       	movw	r24, r28
+     4b6:	01 97       	sbiw	r24, 0x01	; 1
+     4b8:	f1 f7       	brne	.-4      	; 0x4b6 <lcd_init+0x68>
   _delay_ms(5);
-
-  // Display ON, Cursor OFF, Blink OFF (0x0C) for clean look
-  lcd_send_cmd(0x0C);
-     284:	8c e0       	ldi	r24, 0x0C	; 12
-     286:	0e 94 c8 00 	call	0x190	; 0x190 <lcd_send_cmd>
-     28a:	ce 01       	movw	r24, r28
-     28c:	01 97       	sbiw	r24, 0x01	; 1
-     28e:	f1 f7       	brne	.-4      	; 0x28c <lcd_init+0x74>
+  lcd_display();
+     4ba:	0e 94 24 02 	call	0x448	; 0x448 <lcd_display>
+     4be:	ce 01       	movw	r24, r28
+     4c0:	01 97       	sbiw	r24, 0x01	; 1
+     4c2:	f1 f7       	brne	.-4      	; 0x4c0 <lcd_init+0x72>
   _delay_ms(5);
-
-  // Clear display (clears the 2 solid black rows)
   lcd_clear();
-     290:	0e 94 04 01 	call	0x208	; 0x208 <lcd_clear>
-     294:	c8 01       	movw	r24, r16
-     296:	01 97       	sbiw	r24, 0x01	; 1
-     298:	f1 f7       	brne	.-4      	; 0x296 <lcd_init+0x7e>
+     4c4:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+     4c8:	c8 01       	movw	r24, r16
+     4ca:	01 97       	sbiw	r24, 0x01	; 1
+     4cc:	f1 f7       	brne	.-4      	; 0x4ca <lcd_init+0x7c>
   _delay_ms(10);
-
-  // Entry mode set: increment cursor, no display shift
-  lcd_send_cmd(0x06);
-     29a:	86 e0       	ldi	r24, 0x06	; 6
-     29c:	0e 94 c8 00 	call	0x190	; 0x190 <lcd_send_cmd>
-     2a0:	21 97       	sbiw	r28, 0x01	; 1
-     2a2:	f1 f7       	brne	.-4      	; 0x2a0 <lcd_init+0x88>
+  lcd_send_cmd(0x06); // Increment cursor, no display shift
+     4ce:	86 e0       	ldi	r24, 0x06	; 6
+     4d0:	0e 94 c8 01 	call	0x390	; 0x390 <lcd_send_cmd>
+     4d4:	21 97       	sbiw	r28, 0x01	; 1
+     4d6:	f1 f7       	brne	.-4      	; 0x4d4 <lcd_init+0x86>
   _delay_ms(5);
 }
-     2a4:	df 91       	pop	r29
-     2a6:	cf 91       	pop	r28
-     2a8:	1f 91       	pop	r17
-     2aa:	0f 91       	pop	r16
-     2ac:	08 95       	ret
+     4d8:	df 91       	pop	r29
+     4da:	cf 91       	pop	r28
+     4dc:	1f 91       	pop	r17
+     4de:	0f 91       	pop	r16
+     4e0:	08 95       	ret
 
-000002ae <lcd_set_cursor>:
-void lcd_clear(void) {
-  lcd_send_cmd(0x01);
-  _delay_ms(10);
-}
-
-void lcd_set_cursor(uint8_t row, uint8_t col) {
-     2ae:	0f 93       	push	r16
-     2b0:	1f 93       	push	r17
-     2b2:	cf 93       	push	r28
-     2b4:	df 93       	push	r29
-     2b6:	00 d0       	rcall	.+0      	; 0x2b8 <lcd_set_cursor+0xa>
-     2b8:	00 d0       	rcall	.+0      	; 0x2ba <lcd_set_cursor+0xc>
-     2ba:	cd b7       	in	r28, 0x3d	; 61
-     2bc:	de b7       	in	r29, 0x3e	; 62
-  uint8_t row_offsets[] = {0x00, 0x40, 0x14, 0x54};
-     2be:	00 91 f0 02 	lds	r16, 0x02F0	; 0x8002f0 <MainMenu+0x19>
-     2c2:	10 91 f1 02 	lds	r17, 0x02F1	; 0x8002f1 <MainMenu+0x1a>
-     2c6:	20 91 f2 02 	lds	r18, 0x02F2	; 0x8002f2 <MainMenu+0x1b>
-     2ca:	30 91 f3 02 	lds	r19, 0x02F3	; 0x8002f3 <MainMenu+0x1c>
-     2ce:	09 83       	std	Y+1, r16	; 0x01
-     2d0:	1a 83       	std	Y+2, r17	; 0x02
-     2d2:	2b 83       	std	Y+3, r18	; 0x03
-     2d4:	3c 83       	std	Y+4, r19	; 0x04
-  if (row > 3) row = 3;
-  lcd_send_cmd(0x80 | (col + row_offsets[row]));
-     2d6:	84 30       	cpi	r24, 0x04	; 4
-     2d8:	08 f0       	brcs	.+2      	; 0x2dc <lcd_set_cursor+0x2e>
-     2da:	83 e0       	ldi	r24, 0x03	; 3
-     2dc:	fe 01       	movw	r30, r28
-     2de:	e8 0f       	add	r30, r24
-     2e0:	f1 1d       	adc	r31, r1
-     2e2:	81 81       	ldd	r24, Z+1	; 0x01
-     2e4:	86 0f       	add	r24, r22
-     2e6:	80 68       	ori	r24, 0x80	; 128
-}
-     2e8:	0f 90       	pop	r0
-     2ea:	0f 90       	pop	r0
-     2ec:	0f 90       	pop	r0
-     2ee:	0f 90       	pop	r0
-     2f0:	df 91       	pop	r29
-     2f2:	cf 91       	pop	r28
-     2f4:	1f 91       	pop	r17
-     2f6:	0f 91       	pop	r16
-}
-
-void lcd_set_cursor(uint8_t row, uint8_t col) {
-  uint8_t row_offsets[] = {0x00, 0x40, 0x14, 0x54};
-  if (row > 3) row = 3;
-  lcd_send_cmd(0x80 | (col + row_offsets[row]));
-     2f8:	0c 94 c8 00 	jmp	0x190	; 0x190 <lcd_send_cmd>
-
-000002fc <lcd_send_string>:
-}
-
-void lcd_send_string(const char* str){
-     2fc:	cf 93       	push	r28
-     2fe:	df 93       	push	r29
-     300:	ec 01       	movw	r28, r24
-  while(*str){
-     302:	89 91       	ld	r24, Y+
-     304:	81 11       	cpse	r24, r1
-     306:	03 c0       	rjmp	.+6      	; 0x30e <lcd_send_string+0x12>
-    lcd_send_data(*str++);
-  }
-}
-     308:	df 91       	pop	r29
-     30a:	cf 91       	pop	r28
-     30c:	08 95       	ret
-  lcd_send_cmd(0x80 | (col + row_offsets[row]));
-}
-
-void lcd_send_string(const char* str){
-  while(*str){
-    lcd_send_data(*str++);
-     30e:	0e 94 e6 00 	call	0x1cc	; 0x1cc <lcd_send_data>
-     312:	f7 cf       	rjmp	.-18     	; 0x302 <lcd_send_string+0x6>
-
-00000314 <lcd_send_string_animated>:
-  }
-}
-
-void lcd_send_string_animated(const char* str, uint16_t delay_ms_per_char) {
-     314:	ef 92       	push	r14
-     316:	ff 92       	push	r15
-     318:	0f 93       	push	r16
-     31a:	1f 93       	push	r17
-     31c:	cf 93       	push	r28
-     31e:	df 93       	push	r29
-     320:	8b 01       	movw	r16, r22
-     322:	ec 01       	movw	r28, r24
-     324:	80 ea       	ldi	r24, 0xA0	; 160
-     326:	e8 2e       	mov	r14, r24
-     328:	8f e0       	ldi	r24, 0x0F	; 15
-     32a:	f8 2e       	mov	r15, r24
-  while (*str) {
-     32c:	89 91       	ld	r24, Y+
-     32e:	81 11       	cpse	r24, r1
-     330:	07 c0       	rjmp	.+14     	; 0x340 <lcd_send_string_animated+0x2c>
-    lcd_send_data(*str++);
-    for (uint16_t i = 0; i < delay_ms_per_char; i++) {
-      _delay_ms(1);
-    }
-  }
-}
-     332:	df 91       	pop	r29
-     334:	cf 91       	pop	r28
-     336:	1f 91       	pop	r17
-     338:	0f 91       	pop	r16
-     33a:	ff 90       	pop	r15
-     33c:	ef 90       	pop	r14
-     33e:	08 95       	ret
-  }
-}
-
-void lcd_send_string_animated(const char* str, uint16_t delay_ms_per_char) {
-  while (*str) {
-    lcd_send_data(*str++);
-     340:	0e 94 e6 00 	call	0x1cc	; 0x1cc <lcd_send_data>
-    for (uint16_t i = 0; i < delay_ms_per_char; i++) {
-     344:	90 e0       	ldi	r25, 0x00	; 0
-     346:	80 e0       	ldi	r24, 0x00	; 0
-     348:	80 17       	cp	r24, r16
-     34a:	91 07       	cpc	r25, r17
-     34c:	79 f3       	breq	.-34     	; 0x32c <lcd_send_string_animated+0x18>
-     34e:	f7 01       	movw	r30, r14
-     350:	31 97       	sbiw	r30, 0x01	; 1
-     352:	f1 f7       	brne	.-4      	; 0x350 <lcd_send_string_animated+0x3c>
-     354:	01 96       	adiw	r24, 0x01	; 1
-     356:	f8 cf       	rjmp	.-16     	; 0x348 <lcd_send_string_animated+0x34>
-
-00000358 <lcd_display>:
-    }
-  }
-}
-
-void lcd_display(void){
+000004e2 <lcd_write_line>:
   lcd_send_cmd(0x0C);
-     358:	8c e0       	ldi	r24, 0x0C	; 12
-     35a:	0c 94 c8 00 	jmp	0x190	; 0x190 <lcd_send_cmd>
+}
 
-0000035e <seg7_init>:
 
+void lcd_write_line(uint8_t row, const char *text)
+{
+     4e2:	0f 93       	push	r16
+     4e4:	1f 93       	push	r17
+     4e6:	cf 93       	push	r28
+     4e8:	8b 01       	movw	r16, r22
+    if (row >= LCD_ROWS) return;
+     4ea:	84 30       	cpi	r24, 0x04	; 4
+     4ec:	70 f4       	brcc	.+28     	; 0x50a <lcd_write_line+0x28>
+    lcd_set_cursor(row, 0);
+     4ee:	60 e0       	ldi	r22, 0x00	; 0
+     4f0:	0e 94 e5 01 	call	0x3ca	; 0x3ca <lcd_set_cursor>
+     4f4:	c4 e1       	ldi	r28, 0x14	; 20
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++) {
+        if (*text) lcd_send_data((uint8_t)*text++);
+     4f6:	f8 01       	movw	r30, r16
+     4f8:	80 81       	ld	r24, Z
+     4fa:	88 23       	and	r24, r24
+     4fc:	51 f0       	breq	.+20     	; 0x512 <lcd_write_line+0x30>
+     4fe:	0f 5f       	subi	r16, 0xFF	; 255
+     500:	1f 4f       	sbci	r17, 0xFF	; 255
+        else lcd_send_data(' ');
+     502:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+     506:	c1 50       	subi	r28, 0x01	; 1
+
+void lcd_write_line(uint8_t row, const char *text)
+{
+    if (row >= LCD_ROWS) return;
+    lcd_set_cursor(row, 0);
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++) {
+     508:	b1 f7       	brne	.-20     	; 0x4f6 <lcd_write_line+0x14>
+        if (*text) lcd_send_data((uint8_t)*text++);
+        else lcd_send_data(' ');
+    }
+}
+     50a:	cf 91       	pop	r28
+     50c:	1f 91       	pop	r17
+     50e:	0f 91       	pop	r16
+     510:	08 95       	ret
+{
+    if (row >= LCD_ROWS) return;
+    lcd_set_cursor(row, 0);
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++) {
+        if (*text) lcd_send_data((uint8_t)*text++);
+        else lcd_send_data(' ');
+     512:	80 e2       	ldi	r24, 0x20	; 32
+     514:	f6 cf       	rjmp	.-20     	; 0x502 <lcd_write_line+0x20>
+
+00000516 <seg7_init>:
 static uint16_t timer0_tick_count = 0;
+#endif
 
 void seg7_init(void) {
     // Synchronous Timer0 leaves PG3/PG4 available for LCD E and RS.
     ASSR &= ~(1 << AS0);
-     35e:	80 b7       	in	r24, 0x30	; 48
-     360:	87 7f       	andi	r24, 0xF7	; 247
-     362:	80 bf       	out	0x30, r24	; 48
+     516:	80 b7       	in	r24, 0x30	; 48
+     518:	87 7f       	andi	r24, 0xF7	; 247
+     51a:	80 bf       	out	0x30, r24	; 48
     current_digit = 0;
-     364:	10 92 b4 05 	sts	0x05B4, r1	; 0x8005b4 <current_digit>
+     51c:	10 92 cb 03 	sts	0x03CB, r1	; 0x8003cb <current_digit>
+#ifdef SEG7_ENABLE_CLOCK
     timer0_tick_count = 0;
-     368:	10 92 b2 05 	sts	0x05B2, r1	; 0x8005b2 <timer0_tick_count+0x1>
-     36c:	10 92 b1 05 	sts	0x05B1, r1	; 0x8005b1 <timer0_tick_count>
+     520:	10 92 c9 03 	sts	0x03C9, r1	; 0x8003c9 <timer0_tick_count+0x1>
+     524:	10 92 c8 03 	sts	0x03C8, r1	; 0x8003c8 <timer0_tick_count>
+#endif
     dp_mask = 0;
-     370:	10 92 b3 05 	sts	0x05B3, r1	; 0x8005b3 <dp_mask>
+     528:	10 92 ca 03 	sts	0x03CA, r1	; 0x8003ca <dp_mask>
     for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) {
         display_buffer[i] = SEG7_BLANK;
-     374:	e0 e0       	ldi	r30, 0x00	; 0
-     376:	f1 e0       	ldi	r31, 0x01	; 1
-     378:	8f ef       	ldi	r24, 0xFF	; 255
-     37a:	80 83       	st	Z, r24
-     37c:	81 83       	std	Z+1, r24	; 0x01
-     37e:	82 83       	std	Z+2, r24	; 0x02
-     380:	83 83       	std	Z+3, r24	; 0x03
-     382:	84 83       	std	Z+4, r24	; 0x04
-     384:	85 83       	std	Z+5, r24	; 0x05
+     52c:	e0 e0       	ldi	r30, 0x00	; 0
+     52e:	f1 e0       	ldi	r31, 0x01	; 1
+     530:	8f ef       	ldi	r24, 0xFF	; 255
+     532:	80 83       	st	Z, r24
+     534:	81 83       	std	Z+1, r24	; 0x01
+     536:	82 83       	std	Z+2, r24	; 0x02
+     538:	83 83       	std	Z+3, r24	; 0x03
+     53a:	84 83       	std	Z+4, r24	; 0x04
+     53c:	85 83       	std	Z+5, r24	; 0x05
+     53e:	86 83       	std	Z+6, r24	; 0x06
+     540:	87 83       	std	Z+7, r24	; 0x07
     }
     // Hardware memory interface writes to CSEL3 and CSEL4:
     LED_7CONTROL = 0x00;        // Turn off all digit transistors
-     386:	10 92 04 11 	sts	0x1104, r1	; 0x801104 <__bss_end+0xb31>
+     542:	10 92 04 11 	sts	0x1104, r1	; 0x801104 <__bss_end+0xce6>
     LED_7DATA    = SEG_BLANK;   // Turn off all segment lines
-     38a:	10 92 03 11 	sts	0x1103, r1	; 0x801103 <__bss_end+0xb30>
+     546:	10 92 03 11 	sts	0x1103, r1	; 0x801103 <__bss_end+0xce5>
 
-    // Configure Timer0 for 2.0 ms CTC interrupt (500 Hz):
-    // Prescaler 256 (16MHz / 256 = 62.5 kHz) -> 125 counts (OCR0 = 124) = 2.0 ms
-    // Refresh rate for 6 digits = 500 Hz / 6 = 83.3 Hz (clean, zero flicker)
-    TCCR0 = (1 << WGM01) | (1 << CS02) | (1 << CS01);
-     38e:	8e e0       	ldi	r24, 0x0E	; 14
-     390:	83 bf       	out	0x33, r24	; 51
+    // Timer0 /64, 250 counts at 16 MHz: 1 ms slots, 125 Hz per digit.
+    TCCR0 = (1 << WGM01) | (1 << CS02);
+     54a:	8c e0       	ldi	r24, 0x0C	; 12
+     54c:	83 bf       	out	0x33, r24	; 51
     TCNT0 = 0;
-     392:	12 be       	out	0x32, r1	; 50
-    OCR0  = (F_CPU / 256UL / 500UL) - 1;
-     394:	8c e7       	ldi	r24, 0x7C	; 124
-     396:	81 bf       	out	0x31, r24	; 49
+     54e:	12 be       	out	0x32, r1	; 50
+    OCR0 = (F_CPU / 64UL / 1000UL) - 1;
+     550:	89 ef       	ldi	r24, 0xF9	; 249
+     552:	81 bf       	out	0x31, r24	; 49
     TIFR = (1 << OCF0); // Discard any pending compare before enabling it.
-     398:	82 e0       	ldi	r24, 0x02	; 2
-     39a:	86 bf       	out	0x36, r24	; 54
+     554:	82 e0       	ldi	r24, 0x02	; 2
+     556:	86 bf       	out	0x36, r24	; 54
     TIMSK |= (1 << OCIE0);      // Enable Timer0 Compare Match Interrupt
-     39c:	87 b7       	in	r24, 0x37	; 55
-     39e:	82 60       	ori	r24, 0x02	; 2
-     3a0:	87 bf       	out	0x37, r24	; 55
+     558:	87 b7       	in	r24, 0x37	; 55
+     55a:	82 60       	ori	r24, 0x02	; 2
+     55c:	87 bf       	out	0x37, r24	; 55
     sei();                      // Enable global interrupts
-     3a2:	78 94       	sei
+     55e:	78 94       	sei
 }
-     3a4:	08 95       	ret
+     560:	08 95       	ret
 
-000003a6 <seg7_set_digit>:
-        clock_tick_1s();
+00000562 <seg7_set_digit>:
     }
+#endif
 }
 
 void seg7_set_digit(uint8_t pos, uint8_t value) {
     if (pos < SEG7_NUM_DIGITS) {
-     3a6:	86 30       	cpi	r24, 0x06	; 6
-     3a8:	28 f4       	brcc	.+10     	; 0x3b4 <seg7_set_digit+0xe>
+     562:	88 30       	cpi	r24, 0x08	; 8
+     564:	28 f4       	brcc	.+10     	; 0x570 <seg7_set_digit+0xe>
         display_buffer[pos] = value;
-     3aa:	e8 2f       	mov	r30, r24
-     3ac:	f0 e0       	ldi	r31, 0x00	; 0
-     3ae:	e0 50       	subi	r30, 0x00	; 0
-     3b0:	ff 4f       	sbci	r31, 0xFF	; 255
-     3b2:	60 83       	st	Z, r22
+     566:	e8 2f       	mov	r30, r24
+     568:	f0 e0       	ldi	r31, 0x00	; 0
+     56a:	e0 50       	subi	r30, 0x00	; 0
+     56c:	ff 4f       	sbci	r31, 0xFF	; 255
+     56e:	60 83       	st	Z, r22
     }
 }
-     3b4:	08 95       	ret
+     570:	08 95       	ret
 
-000003b6 <seg7_set_array>:
+00000572 <seg7_set_array>:
 
 void seg7_set_array(const uint8_t digits[SEG7_NUM_DIGITS]) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-     3b6:	2f b7       	in	r18, 0x3f	; 63
+     572:	2f b7       	in	r18, 0x3f	; 63
     return 1;
 }
 
 static __inline__ uint8_t __iCliRetVal(void)
 {
     cli();
-     3b8:	f8 94       	cli
-     3ba:	fc 01       	movw	r30, r24
-     3bc:	90 e0       	ldi	r25, 0x00	; 0
-     3be:	80 e0       	ldi	r24, 0x00	; 0
+     574:	f8 94       	cli
+     576:	fc 01       	movw	r30, r24
+     578:	90 e0       	ldi	r25, 0x00	; 0
+     57a:	80 e0       	ldi	r24, 0x00	; 0
         for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) {
             display_buffer[i] = digits[i];
-     3c0:	31 91       	ld	r19, Z+
-     3c2:	dc 01       	movw	r26, r24
-     3c4:	a0 50       	subi	r26, 0x00	; 0
-     3c6:	bf 4f       	sbci	r27, 0xFF	; 255
-     3c8:	3c 93       	st	X, r19
-     3ca:	01 96       	adiw	r24, 0x01	; 1
+     57c:	31 91       	ld	r19, Z+
+     57e:	dc 01       	movw	r26, r24
+     580:	a0 50       	subi	r26, 0x00	; 0
+     582:	bf 4f       	sbci	r27, 0xFF	; 255
+     584:	3c 93       	st	X, r19
+     586:	01 96       	adiw	r24, 0x01	; 1
     }
 }
 
 void seg7_set_array(const uint8_t digits[SEG7_NUM_DIGITS]) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) {
-     3cc:	86 30       	cpi	r24, 0x06	; 6
-     3ce:	91 05       	cpc	r25, r1
-     3d0:	b9 f7       	brne	.-18     	; 0x3c0 <seg7_set_array+0xa>
+     588:	88 30       	cpi	r24, 0x08	; 8
+     58a:	91 05       	cpc	r25, r1
+     58c:	b9 f7       	brne	.-18     	; 0x57c <seg7_set_array+0xa>
     (void)__s;
 }
 
 static __inline__ void __iRestore(const  uint8_t *__s)
 {
     SREG = *__s;
-     3d2:	2f bf       	out	0x3f, r18	; 63
+     58e:	2f bf       	out	0x3f, r18	; 63
             display_buffer[i] = digits[i];
         }
     }
 }
-     3d4:	08 95       	ret
+     590:	08 95       	ret
 
-000003d6 <seg7_set_number>:
+00000592 <seg7_set_decimal.part.1>:
+
+    // Advance across all eight logical positions.
+    current_digit = (current_digit + 1) % SEG7_NUM_DIGITS;
+}
+
+void seg7_set_decimal(uint32_t num, uint8_t width)
+     592:	8f 92       	push	r8
+     594:	9f 92       	push	r9
+     596:	af 92       	push	r10
+     598:	bf 92       	push	r11
+     59a:	ef 92       	push	r14
+     59c:	ff 92       	push	r15
+     59e:	0f 93       	push	r16
+     5a0:	1f 93       	push	r17
+     5a2:	cf 93       	push	r28
+     5a4:	df 93       	push	r29
+     5a6:	cd b7       	in	r28, 0x3d	; 61
+     5a8:	de b7       	in	r29, 0x3e	; 62
+     5aa:	28 97       	sbiw	r28, 0x08	; 8
+     5ac:	0f b6       	in	r0, 0x3f	; 63
+     5ae:	f8 94       	cli
+     5b0:	de bf       	out	0x3e, r29	; 62
+     5b2:	0f be       	out	0x3f, r0	; 63
+     5b4:	cd bf       	out	0x3d, r28	; 61
+     5b6:	e4 2e       	mov	r14, r20
+{
+    if (width == 0 || width > SEG7_NUM_DIGITS) return;
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) digits[i] = SEG7_BLANK;
+     5b8:	ef ef       	ldi	r30, 0xFF	; 255
+     5ba:	e9 83       	std	Y+1, r30	; 0x01
+     5bc:	ea 83       	std	Y+2, r30	; 0x02
+     5be:	eb 83       	std	Y+3, r30	; 0x03
+     5c0:	ec 83       	std	Y+4, r30	; 0x04
+     5c2:	ed 83       	std	Y+5, r30	; 0x05
+     5c4:	ee 83       	std	Y+6, r30	; 0x06
+     5c6:	ef 83       	std	Y+7, r30	; 0x07
+     5c8:	e8 87       	std	Y+8, r30	; 0x08
+     5ca:	8e 01       	movw	r16, r28
+     5cc:	07 5f       	subi	r16, 0xF7	; 247
+     5ce:	1f 4f       	sbci	r17, 0xFF	; 255
+    for (uint8_t i = 0; i < width; i++) {
+     5d0:	f1 2c       	mov	r15, r1
+        digits[SEG7_NUM_DIGITS - 1 - i] = num % 10;
+     5d2:	2a e0       	ldi	r18, 0x0A	; 10
+     5d4:	82 2e       	mov	r8, r18
+     5d6:	91 2c       	mov	r9, r1
+     5d8:	a1 2c       	mov	r10, r1
+     5da:	b1 2c       	mov	r11, r1
+void seg7_set_decimal(uint32_t num, uint8_t width)
+{
+    if (width == 0 || width > SEG7_NUM_DIGITS) return;
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) digits[i] = SEG7_BLANK;
+    for (uint8_t i = 0; i < width; i++) {
+     5dc:	fe 10       	cpse	r15, r14
+     5de:	15 c0       	rjmp	.+42     	; 0x60a <seg7_set_decimal.part.1+0x78>
+        digits[SEG7_NUM_DIGITS - 1 - i] = num % 10;
+        num /= 10;
+    }
+    seg7_set_array(digits);
+     5e0:	ce 01       	movw	r24, r28
+     5e2:	01 96       	adiw	r24, 0x01	; 1
+     5e4:	0e 94 b9 02 	call	0x572	; 0x572 <seg7_set_array>
+}
+     5e8:	28 96       	adiw	r28, 0x08	; 8
+     5ea:	0f b6       	in	r0, 0x3f	; 63
+     5ec:	f8 94       	cli
+     5ee:	de bf       	out	0x3e, r29	; 62
+     5f0:	0f be       	out	0x3f, r0	; 63
+     5f2:	cd bf       	out	0x3d, r28	; 61
+     5f4:	df 91       	pop	r29
+     5f6:	cf 91       	pop	r28
+     5f8:	1f 91       	pop	r17
+     5fa:	0f 91       	pop	r16
+     5fc:	ff 90       	pop	r15
+     5fe:	ef 90       	pop	r14
+     600:	bf 90       	pop	r11
+     602:	af 90       	pop	r10
+     604:	9f 90       	pop	r9
+     606:	8f 90       	pop	r8
+     608:	08 95       	ret
+{
+    if (width == 0 || width > SEG7_NUM_DIGITS) return;
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) digits[i] = SEG7_BLANK;
+    for (uint8_t i = 0; i < width; i++) {
+        digits[SEG7_NUM_DIGITS - 1 - i] = num % 10;
+     60a:	a5 01       	movw	r20, r10
+     60c:	94 01       	movw	r18, r8
+     60e:	0e 94 35 0a 	call	0x146a	; 0x146a <__udivmodsi4>
+     612:	f8 01       	movw	r30, r16
+     614:	62 93       	st	-Z, r22
+     616:	8f 01       	movw	r16, r30
+        num /= 10;
+     618:	b9 01       	movw	r22, r18
+     61a:	ca 01       	movw	r24, r20
+void seg7_set_decimal(uint32_t num, uint8_t width)
+{
+    if (width == 0 || width > SEG7_NUM_DIGITS) return;
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < SEG7_NUM_DIGITS; i++) digits[i] = SEG7_BLANK;
+    for (uint8_t i = 0; i < width; i++) {
+     61c:	f3 94       	inc	r15
+     61e:	de cf       	rjmp	.-68     	; 0x5dc <seg7_set_decimal.part.1+0x4a>
+
+00000620 <action_seg_draw_value>:
+#include "buttons.h"
+static uint16_t action_value;
+static int8_t action_direction;
+
+static void action_seg_draw_value(void)
+{
+     620:	ef 92       	push	r14
+     622:	ff 92       	push	r15
+     624:	0f 93       	push	r16
+     626:	1f 93       	push	r17
+     628:	cf 93       	push	r28
+     62a:	df 93       	push	r29
+     62c:	cd b7       	in	r28, 0x3d	; 61
+     62e:	de b7       	in	r29, 0x3e	; 62
+     630:	2c 97       	sbiw	r28, 0x0c	; 12
+     632:	0f b6       	in	r0, 0x3f	; 63
+     634:	f8 94       	cli
+     636:	de bf       	out	0x3e, r29	; 62
+     638:	0f be       	out	0x3f, r0	; 63
+     63a:	cd bf       	out	0x3d, r28	; 61
+    uint16_t remaining = action_value;
+     63c:	20 91 c6 03 	lds	r18, 0x03C6	; 0x8003c6 <action_value>
+     640:	30 91 c7 03 	lds	r19, 0x03C7	; 0x8003c7 <action_value+0x1>
+    char line[] = "VALUE: 0000";
+     644:	8c e0       	ldi	r24, 0x0C	; 12
+     646:	ea e3       	ldi	r30, 0x3A	; 58
+     648:	f3 e0       	ldi	r31, 0x03	; 3
+     64a:	de 01       	movw	r26, r28
+     64c:	11 96       	adiw	r26, 0x01	; 1
+     64e:	01 90       	ld	r0, Z+
+     650:	0d 92       	st	X+, r0
+     652:	8a 95       	dec	r24
+     654:	e1 f7       	brne	.-8      	; 0x64e <action_seg_draw_value+0x2e>
+     656:	fe 01       	movw	r30, r28
+     658:	31 96       	adiw	r30, 0x01	; 1
+     65a:	8e 01       	movw	r16, r28
+     65c:	03 50       	subi	r16, 0x03	; 3
+     65e:	11 09       	sbc	r17, r1
+static uint16_t action_value;
+static int8_t action_direction;
+
+static void action_seg_draw_value(void)
+{
+    uint16_t remaining = action_value;
+     660:	c9 01       	movw	r24, r18
+    char line[] = "VALUE: 0000";
+    for (uint8_t i = 0; i < 4; i++) {
+        line[10 - i] = '0' + remaining % 10;
+     662:	4a e0       	ldi	r20, 0x0A	; 10
+     664:	e4 2e       	mov	r14, r20
+     666:	f1 2c       	mov	r15, r1
+     668:	b7 01       	movw	r22, r14
+     66a:	0e 94 21 0a 	call	0x1442	; 0x1442 <__udivmodhi4>
+     66e:	80 5d       	subi	r24, 0xD0	; 208
+     670:	82 87       	std	Z+10, r24	; 0x0a
+        remaining /= 10;
+     672:	cb 01       	movw	r24, r22
+     674:	31 97       	sbiw	r30, 0x01	; 1
+
+static void action_seg_draw_value(void)
+{
+    uint16_t remaining = action_value;
+    char line[] = "VALUE: 0000";
+    for (uint8_t i = 0; i < 4; i++) {
+     676:	e0 17       	cp	r30, r16
+     678:	f1 07       	cpc	r31, r17
+     67a:	b1 f7       	brne	.-20     	; 0x668 <action_seg_draw_value+0x48>
+        line[10 - i] = '0' + remaining % 10;
+        remaining /= 10;
+    }
+    seg7_set_decimal(action_value, 4);
+     67c:	b9 01       	movw	r22, r18
+     67e:	90 e0       	ldi	r25, 0x00	; 0
+     680:	80 e0       	ldi	r24, 0x00	; 0
+     682:	44 e0       	ldi	r20, 0x04	; 4
+     684:	0e 94 c9 02 	call	0x592	; 0x592 <seg7_set_decimal.part.1>
+    lcd_write_line(1, line);
+     688:	be 01       	movw	r22, r28
+     68a:	6f 5f       	subi	r22, 0xFF	; 255
+     68c:	7f 4f       	sbci	r23, 0xFF	; 255
+     68e:	81 e0       	ldi	r24, 0x01	; 1
+     690:	0e 94 71 02 	call	0x4e2	; 0x4e2 <lcd_write_line>
+}
+     694:	2c 96       	adiw	r28, 0x0c	; 12
+     696:	0f b6       	in	r0, 0x3f	; 63
+     698:	f8 94       	cli
+     69a:	de bf       	out	0x3e, r29	; 62
+     69c:	0f be       	out	0x3f, r0	; 63
+     69e:	cd bf       	out	0x3d, r28	; 61
+     6a0:	df 91       	pop	r29
+     6a2:	cf 91       	pop	r28
+     6a4:	1f 91       	pop	r17
+     6a6:	0f 91       	pop	r16
+     6a8:	ff 90       	pop	r15
+     6aa:	ef 90       	pop	r14
+     6ac:	08 95       	ret
+
+000006ae <action_seg_start>:
+
+static void action_seg_start(const char *title, uint16_t value, int8_t direction)
+{
+     6ae:	cf 93       	push	r28
+     6b0:	df 93       	push	r29
+     6b2:	ec 01       	movw	r28, r24
+    action_value = value;
+     6b4:	70 93 c7 03 	sts	0x03C7, r23	; 0x8003c7 <action_value+0x1>
+     6b8:	60 93 c6 03 	sts	0x03C6, r22	; 0x8003c6 <action_value>
+    action_direction = direction;
+     6bc:	40 93 c5 03 	sts	0x03C5, r20	; 0x8003c5 <action_direction>
+    }
+    seg7_set_array(digits);
+}
+
+void seg7_set_dp_mask(uint8_t mask) {
+    dp_mask = mask;
+     6c0:	10 92 ca 03 	sts	0x03CA, r1	; 0x8003ca <dp_mask>
+static void action_seg_start(const char *title, uint16_t value, int8_t direction)
+{
+    action_value = value;
+    action_direction = direction;
+    seg7_set_dp_mask(0);
+    lcd_clear();
+     6c4:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+    lcd_write_line(0, title);
+     6c8:	be 01       	movw	r22, r28
+     6ca:	80 e0       	ldi	r24, 0x00	; 0
+     6cc:	0e 94 71 02 	call	0x4e2	; 0x4e2 <lcd_write_line>
+    action_seg_draw_value();
+}
+     6d0:	df 91       	pop	r29
+     6d2:	cf 91       	pop	r28
+    action_value = value;
+    action_direction = direction;
+    seg7_set_dp_mask(0);
+    lcd_clear();
+    lcd_write_line(0, title);
+    action_seg_draw_value();
+     6d4:	0c 94 10 03 	jmp	0x620	; 0x620 <action_seg_draw_value>
+
+000006d8 <seg7_set_number>:
+            display_buffer[i] = digits[i];
+        }
+    }
+}
 
 void seg7_set_number(uint32_t num) {
-     3d6:	8f 92       	push	r8
-     3d8:	9f 92       	push	r9
-     3da:	af 92       	push	r10
-     3dc:	bf 92       	push	r11
-     3de:	ef 92       	push	r14
-     3e0:	ff 92       	push	r15
-     3e2:	0f 93       	push	r16
-     3e4:	1f 93       	push	r17
-     3e6:	cf 93       	push	r28
-     3e8:	df 93       	push	r29
-     3ea:	00 d0       	rcall	.+0      	; 0x3ec <seg7_set_number+0x16>
-     3ec:	00 d0       	rcall	.+0      	; 0x3ee <seg7_set_number+0x18>
-     3ee:	00 d0       	rcall	.+0      	; 0x3f0 <seg7_set_number+0x1a>
-     3f0:	cd b7       	in	r28, 0x3d	; 61
-     3f2:	de b7       	in	r29, 0x3e	; 62
-     3f4:	8e 01       	movw	r16, r28
-     3f6:	09 5f       	subi	r16, 0xF9	; 249
-     3f8:	1f 4f       	sbci	r17, 0xFF	; 255
-     3fa:	9e 01       	movw	r18, r28
-     3fc:	2f 5f       	subi	r18, 0xFF	; 255
-     3fe:	3f 4f       	sbci	r19, 0xFF	; 255
-     400:	79 01       	movw	r14, r18
+     6d8:	8f 92       	push	r8
+     6da:	9f 92       	push	r9
+     6dc:	af 92       	push	r10
+     6de:	bf 92       	push	r11
+     6e0:	ef 92       	push	r14
+     6e2:	ff 92       	push	r15
+     6e4:	0f 93       	push	r16
+     6e6:	1f 93       	push	r17
+     6e8:	cf 93       	push	r28
+     6ea:	df 93       	push	r29
+     6ec:	cd b7       	in	r28, 0x3d	; 61
+     6ee:	de b7       	in	r29, 0x3e	; 62
+     6f0:	28 97       	sbiw	r28, 0x08	; 8
+     6f2:	0f b6       	in	r0, 0x3f	; 63
+     6f4:	f8 94       	cli
+     6f6:	de bf       	out	0x3e, r29	; 62
+     6f8:	0f be       	out	0x3f, r0	; 63
+     6fa:	cd bf       	out	0x3d, r28	; 61
+     6fc:	8e 01       	movw	r16, r28
+     6fe:	07 5f       	subi	r16, 0xF7	; 247
+     700:	1f 4f       	sbci	r17, 0xFF	; 255
+     702:	9e 01       	movw	r18, r28
+     704:	2f 5f       	subi	r18, 0xFF	; 255
+     706:	3f 4f       	sbci	r19, 0xFF	; 255
+     708:	79 01       	movw	r14, r18
     uint8_t digits[SEG7_NUM_DIGITS];
     for (int8_t i = SEG7_NUM_DIGITS - 1; i >= 0; i--) {
         digits[i] = num % 10;
-     402:	2a e0       	ldi	r18, 0x0A	; 10
-     404:	82 2e       	mov	r8, r18
-     406:	91 2c       	mov	r9, r1
-     408:	a1 2c       	mov	r10, r1
-     40a:	b1 2c       	mov	r11, r1
-     40c:	a5 01       	movw	r20, r10
-     40e:	94 01       	movw	r18, r8
-     410:	0e 94 5e 09 	call	0x12bc	; 0x12bc <__udivmodsi4>
-     414:	f8 01       	movw	r30, r16
-     416:	62 93       	st	-Z, r22
-     418:	8f 01       	movw	r16, r30
+     70a:	2a e0       	ldi	r18, 0x0A	; 10
+     70c:	82 2e       	mov	r8, r18
+     70e:	91 2c       	mov	r9, r1
+     710:	a1 2c       	mov	r10, r1
+     712:	b1 2c       	mov	r11, r1
+     714:	a5 01       	movw	r20, r10
+     716:	94 01       	movw	r18, r8
+     718:	0e 94 35 0a 	call	0x146a	; 0x146a <__udivmodsi4>
+     71c:	f8 01       	movw	r30, r16
+     71e:	62 93       	st	-Z, r22
+     720:	8f 01       	movw	r16, r30
         num /= 10;
-     41a:	b9 01       	movw	r22, r18
-     41c:	ca 01       	movw	r24, r20
+     722:	b9 01       	movw	r22, r18
+     724:	ca 01       	movw	r24, r20
     }
 }
 
 void seg7_set_number(uint32_t num) {
     uint8_t digits[SEG7_NUM_DIGITS];
     for (int8_t i = SEG7_NUM_DIGITS - 1; i >= 0; i--) {
-     41e:	ee 15       	cp	r30, r14
-     420:	ff 05       	cpc	r31, r15
-     422:	a1 f7       	brne	.-24     	; 0x40c <__LOCK_REGION_LENGTH__+0xc>
+     726:	ee 15       	cp	r30, r14
+     728:	ff 05       	cpc	r31, r15
+     72a:	a1 f7       	brne	.-24     	; 0x714 <seg7_set_number+0x3c>
         digits[i] = num % 10;
         num /= 10;
     }
     seg7_set_array(digits);
-     424:	cf 01       	movw	r24, r30
-     426:	0e 94 db 01 	call	0x3b6	; 0x3b6 <seg7_set_array>
+     72c:	cf 01       	movw	r24, r30
+     72e:	0e 94 b9 02 	call	0x572	; 0x572 <seg7_set_array>
 }
-     42a:	26 96       	adiw	r28, 0x06	; 6
-     42c:	0f b6       	in	r0, 0x3f	; 63
-     42e:	f8 94       	cli
-     430:	de bf       	out	0x3e, r29	; 62
-     432:	0f be       	out	0x3f, r0	; 63
-     434:	cd bf       	out	0x3d, r28	; 61
-     436:	df 91       	pop	r29
-     438:	cf 91       	pop	r28
-     43a:	1f 91       	pop	r17
-     43c:	0f 91       	pop	r16
-     43e:	ff 90       	pop	r15
-     440:	ef 90       	pop	r14
-     442:	bf 90       	pop	r11
-     444:	af 90       	pop	r10
-     446:	9f 90       	pop	r9
-     448:	8f 90       	pop	r8
-     44a:	08 95       	ret
+     732:	28 96       	adiw	r28, 0x08	; 8
+     734:	0f b6       	in	r0, 0x3f	; 63
+     736:	f8 94       	cli
+     738:	de bf       	out	0x3e, r29	; 62
+     73a:	0f be       	out	0x3f, r0	; 63
+     73c:	cd bf       	out	0x3d, r28	; 61
+     73e:	df 91       	pop	r29
+     740:	cf 91       	pop	r28
+     742:	1f 91       	pop	r17
+     744:	0f 91       	pop	r16
+     746:	ff 90       	pop	r15
+     748:	ef 90       	pop	r14
+     74a:	bf 90       	pop	r11
+     74c:	af 90       	pop	r10
+     74e:	9f 90       	pop	r9
+     750:	8f 90       	pop	r8
+     752:	08 95       	ret
 
-0000044c <seg7_set_dp_mask>:
+00000754 <seg7_set_dp_mask>:
 
 void seg7_set_dp_mask(uint8_t mask) {
     dp_mask = mask;
-     44c:	80 93 b3 05 	sts	0x05B3, r24	; 0x8005b3 <dp_mask>
+     754:	80 93 ca 03 	sts	0x03CA, r24	; 0x8003ca <dp_mask>
 }
-     450:	08 95       	ret
+     758:	08 95       	ret
 
-00000452 <seg7_update>:
+0000075a <seg7_update>:
 
 void seg7_update(void) {
     // 1. Blanking: Turn off all transistors first (via CSEL4) to prevent ghosting
     LED_7CONTROL = 0x00;
-     452:	10 92 04 11 	sts	0x1104, r1	; 0x801104 <__bss_end+0xb31>
+     75a:	10 92 04 11 	sts	0x1104, r1	; 0x801104 <__bss_end+0xce6>
 
     // 2. Load the segment pattern for the active digit (via CSEL3)
     uint8_t val = display_buffer[current_digit];
-     456:	30 91 b4 05 	lds	r19, 0x05B4	; 0x8005b4 <current_digit>
-     45a:	e3 2f       	mov	r30, r19
-     45c:	f0 e0       	ldi	r31, 0x00	; 0
-     45e:	e0 50       	subi	r30, 0x00	; 0
-     460:	ff 4f       	sbci	r31, 0xFF	; 255
-     462:	e0 81       	ld	r30, Z
+     75e:	30 91 cb 03 	lds	r19, 0x03CB	; 0x8003cb <current_digit>
+     762:	e3 2f       	mov	r30, r19
+     764:	f0 e0       	ldi	r31, 0x00	; 0
+     766:	e0 50       	subi	r30, 0x00	; 0
+     768:	ff 4f       	sbci	r31, 0xFF	; 255
+     76a:	e0 81       	ld	r30, Z
     uint8_t seg_pattern = (val < 16) ? SEGMENT_MAP[val] : SEG_BLANK;
-     464:	20 e0       	ldi	r18, 0x00	; 0
-     466:	e0 31       	cpi	r30, 0x10	; 16
-     468:	70 f4       	brcc	.+28     	; 0x486 <seg7_update+0x34>
-     46a:	f0 e0       	ldi	r31, 0x00	; 0
-     46c:	ec 50       	subi	r30, 0x0C	; 12
-     46e:	fd 4f       	sbci	r31, 0xFD	; 253
-     470:	20 81       	ld	r18, Z
+     76c:	20 e0       	ldi	r18, 0x00	; 0
+     76e:	e0 31       	cpi	r30, 0x10	; 16
+     770:	70 f4       	brcc	.+28     	; 0x78e <seg7_update+0x34>
+     772:	f0 e0       	ldi	r31, 0x00	; 0
+     774:	eb 5e       	subi	r30, 0xEB	; 235
+     776:	fd 4f       	sbci	r31, 0xFD	; 253
+     778:	20 81       	ld	r18, Z
 
     // 2b. Turn on Decimal Point if enabled for this digit
     if (val < 16 && (dp_mask & (1 << current_digit))) {
-     472:	80 91 b3 05 	lds	r24, 0x05B3	; 0x8005b3 <dp_mask>
-     476:	90 e0       	ldi	r25, 0x00	; 0
-     478:	02 c0       	rjmp	.+4      	; 0x47e <seg7_update+0x2c>
-     47a:	95 95       	asr	r25
-     47c:	87 95       	ror	r24
-     47e:	3a 95       	dec	r19
-     480:	e2 f7       	brpl	.-8      	; 0x47a <seg7_update+0x28>
-     482:	80 fd       	sbrc	r24, 0
+     77a:	80 91 ca 03 	lds	r24, 0x03CA	; 0x8003ca <dp_mask>
+     77e:	90 e0       	ldi	r25, 0x00	; 0
+     780:	02 c0       	rjmp	.+4      	; 0x786 <seg7_update+0x2c>
+     782:	95 95       	asr	r25
+     784:	87 95       	ror	r24
+     786:	3a 95       	dec	r19
+     788:	e2 f7       	brpl	.-8      	; 0x782 <seg7_update+0x28>
+     78a:	80 fd       	sbrc	r24, 0
         seg_pattern |= SEG7_DP_MASK; // Decimal point is segment-data bit 0.
-     484:	21 60       	ori	r18, 0x01	; 1
+     78c:	21 60       	ori	r18, 0x01	; 1
     }
 
     LED_7DATA = seg_pattern;
-     486:	20 93 03 11 	sts	0x1103, r18	; 0x801103 <__bss_end+0xb30>
-    //    current_digit 1 (LED 2)            -> Q1 (pin 18) -> bit 1 (1 << 1) = 0x02
-    //    current_digit 2 (LED 3)            -> Q2 (pin 17) -> bit 2 (1 << 2) = 0x04
-    //    current_digit 3 (LED 4)            -> Q3 (pin 16) -> bit 3 (1 << 3) = 0x08
-    //    current_digit 4 (LED 5)            -> Q4 (pin 15) -> bit 4 (1 << 4) = 0x10
-    //    current_digit 5 (LED 6, rightmost) -> Q5 (pin 14) -> bit 5 (1 << 5) = 0x20
-    LED_7CONTROL = (1 << current_digit);
-     48a:	20 91 b4 05 	lds	r18, 0x05B4	; 0x8005b4 <current_digit>
-     48e:	81 e0       	ldi	r24, 0x01	; 1
-     490:	90 e0       	ldi	r25, 0x00	; 0
-     492:	01 c0       	rjmp	.+2      	; 0x496 <seg7_update+0x44>
-     494:	88 0f       	add	r24, r24
-     496:	2a 95       	dec	r18
-     498:	ea f7       	brpl	.-6      	; 0x494 <seg7_update+0x42>
-     49a:	80 93 04 11 	sts	0x1104, r24	; 0x801104 <__bss_end+0xb31>
+     78e:	20 93 03 11 	sts	0x1103, r18	; 0x801103 <__bss_end+0xce5>
 
-    // 4. Advance to next digit position (0 to 5)
+    // Physical order from left to right: Q7 Q6 Q5 Q4 Q3 Q2 Q1 Q0.
+    LED_7CONTROL = (uint8_t)(0x80u >> current_digit);
+     792:	20 91 cb 03 	lds	r18, 0x03CB	; 0x8003cb <current_digit>
+     796:	80 e8       	ldi	r24, 0x80	; 128
+     798:	90 e0       	ldi	r25, 0x00	; 0
+     79a:	02 c0       	rjmp	.+4      	; 0x7a0 <seg7_update+0x46>
+     79c:	96 95       	lsr	r25
+     79e:	87 95       	ror	r24
+     7a0:	2a 95       	dec	r18
+     7a2:	e2 f7       	brpl	.-8      	; 0x79c <seg7_update+0x42>
+     7a4:	80 93 04 11 	sts	0x1104, r24	; 0x801104 <__bss_end+0xce6>
+
+    // Advance across all eight logical positions.
     current_digit = (current_digit + 1) % SEG7_NUM_DIGITS;
-     49e:	80 91 b4 05 	lds	r24, 0x05B4	; 0x8005b4 <current_digit>
-     4a2:	90 e0       	ldi	r25, 0x00	; 0
-     4a4:	01 96       	adiw	r24, 0x01	; 1
-     4a6:	66 e0       	ldi	r22, 0x06	; 6
-     4a8:	70 e0       	ldi	r23, 0x00	; 0
-     4aa:	0e 94 4a 09 	call	0x1294	; 0x1294 <__divmodhi4>
-     4ae:	80 93 b4 05 	sts	0x05B4, r24	; 0x8005b4 <current_digit>
+     7a8:	80 91 cb 03 	lds	r24, 0x03CB	; 0x8003cb <current_digit>
+     7ac:	90 e0       	ldi	r25, 0x00	; 0
+     7ae:	01 96       	adiw	r24, 0x01	; 1
+     7b0:	87 70       	andi	r24, 0x07	; 7
+     7b2:	99 27       	eor	r25, r25
+     7b4:	80 93 cb 03 	sts	0x03CB, r24	; 0x8003cb <current_digit>
 }
-     4b2:	08 95       	ret
+     7b8:	08 95       	ret
 
-000004b4 <__vector_15>:
+000007ba <__vector_15>:
     TIFR = (1 << OCF0); // Discard any pending compare before enabling it.
     TIMSK |= (1 << OCIE0);      // Enable Timer0 Compare Match Interrupt
     sei();                      // Enable global interrupts
 }
 
 ISR(TIMER0_COMP_vect) {
-     4b4:	1f 92       	push	r1
-     4b6:	0f 92       	push	r0
-     4b8:	0f b6       	in	r0, 0x3f	; 63
-     4ba:	0f 92       	push	r0
-     4bc:	11 24       	eor	r1, r1
-     4be:	0b b6       	in	r0, 0x3b	; 59
-     4c0:	0f 92       	push	r0
-     4c2:	2f 93       	push	r18
-     4c4:	3f 93       	push	r19
-     4c6:	4f 93       	push	r20
-     4c8:	5f 93       	push	r21
-     4ca:	6f 93       	push	r22
-     4cc:	7f 93       	push	r23
-     4ce:	8f 93       	push	r24
-     4d0:	9f 93       	push	r25
-     4d2:	af 93       	push	r26
-     4d4:	bf 93       	push	r27
-     4d6:	ef 93       	push	r30
-     4d8:	ff 93       	push	r31
+     7ba:	1f 92       	push	r1
+     7bc:	0f 92       	push	r0
+     7be:	0f b6       	in	r0, 0x3f	; 63
+     7c0:	0f 92       	push	r0
+     7c2:	11 24       	eor	r1, r1
+     7c4:	0b b6       	in	r0, 0x3b	; 59
+     7c6:	0f 92       	push	r0
+     7c8:	2f 93       	push	r18
+     7ca:	3f 93       	push	r19
+     7cc:	4f 93       	push	r20
+     7ce:	5f 93       	push	r21
+     7d0:	6f 93       	push	r22
+     7d2:	7f 93       	push	r23
+     7d4:	8f 93       	push	r24
+     7d6:	9f 93       	push	r25
+     7d8:	af 93       	push	r26
+     7da:	bf 93       	push	r27
+     7dc:	ef 93       	push	r30
+     7de:	ff 93       	push	r31
     seg7_update();
-     4da:	0e 94 29 02 	call	0x452	; 0x452 <seg7_update>
+     7e0:	0e 94 ad 03 	call	0x75a	; 0x75a <seg7_update>
 
-    // 500 interrupts @ 2.0 ms = 1000 ms (exact 1 second tick for clock)
+#ifdef SEG7_ENABLE_CLOCK
+    // Legacy clock diagnostic only; the main application just scans digits.
+    // 1000 interrupts at 1 ms supply the only one-second clock tick.
     timer0_tick_count++;
-     4de:	80 91 b1 05 	lds	r24, 0x05B1	; 0x8005b1 <timer0_tick_count>
-     4e2:	90 91 b2 05 	lds	r25, 0x05B2	; 0x8005b2 <timer0_tick_count+0x1>
-     4e6:	01 96       	adiw	r24, 0x01	; 1
-    if (timer0_tick_count >= 500) {
-     4e8:	84 3f       	cpi	r24, 0xF4	; 244
-     4ea:	21 e0       	ldi	r18, 0x01	; 1
-     4ec:	92 07       	cpc	r25, r18
-     4ee:	b8 f4       	brcc	.+46     	; 0x51e <__vector_15+0x6a>
-
-ISR(TIMER0_COMP_vect) {
+     7e4:	80 91 c8 03 	lds	r24, 0x03C8	; 0x8003c8 <timer0_tick_count>
+     7e8:	90 91 c9 03 	lds	r25, 0x03C9	; 0x8003c9 <timer0_tick_count+0x1>
+     7ec:	01 96       	adiw	r24, 0x01	; 1
+    if (timer0_tick_count >= 1000) {
+     7ee:	88 3e       	cpi	r24, 0xE8	; 232
+     7f0:	23 e0       	ldi	r18, 0x03	; 3
+     7f2:	92 07       	cpc	r25, r18
+     7f4:	b8 f4       	brcc	.+46     	; 0x824 <__vector_15+0x6a>
     seg7_update();
 
-    // 500 interrupts @ 2.0 ms = 1000 ms (exact 1 second tick for clock)
+#ifdef SEG7_ENABLE_CLOCK
+    // Legacy clock diagnostic only; the main application just scans digits.
+    // 1000 interrupts at 1 ms supply the only one-second clock tick.
     timer0_tick_count++;
-     4f0:	90 93 b2 05 	sts	0x05B2, r25	; 0x8005b2 <timer0_tick_count+0x1>
-     4f4:	80 93 b1 05 	sts	0x05B1, r24	; 0x8005b1 <timer0_tick_count>
-    if (timer0_tick_count >= 500) {
+     7f6:	90 93 c9 03 	sts	0x03C9, r25	; 0x8003c9 <timer0_tick_count+0x1>
+     7fa:	80 93 c8 03 	sts	0x03C8, r24	; 0x8003c8 <timer0_tick_count>
+    if (timer0_tick_count >= 1000) {
         timer0_tick_count = 0;
         clock_tick_1s();
     }
+#endif
 }
-     4f8:	ff 91       	pop	r31
-     4fa:	ef 91       	pop	r30
-     4fc:	bf 91       	pop	r27
-     4fe:	af 91       	pop	r26
-     500:	9f 91       	pop	r25
-     502:	8f 91       	pop	r24
-     504:	7f 91       	pop	r23
-     506:	6f 91       	pop	r22
-     508:	5f 91       	pop	r21
-     50a:	4f 91       	pop	r20
-     50c:	3f 91       	pop	r19
-     50e:	2f 91       	pop	r18
-     510:	0f 90       	pop	r0
-     512:	0b be       	out	0x3b, r0	; 59
-     514:	0f 90       	pop	r0
-     516:	0f be       	out	0x3f, r0	; 63
-     518:	0f 90       	pop	r0
-     51a:	1f 90       	pop	r1
-     51c:	18 95       	reti
-    seg7_update();
-
-    // 500 interrupts @ 2.0 ms = 1000 ms (exact 1 second tick for clock)
+     7fe:	ff 91       	pop	r31
+     800:	ef 91       	pop	r30
+     802:	bf 91       	pop	r27
+     804:	af 91       	pop	r26
+     806:	9f 91       	pop	r25
+     808:	8f 91       	pop	r24
+     80a:	7f 91       	pop	r23
+     80c:	6f 91       	pop	r22
+     80e:	5f 91       	pop	r21
+     810:	4f 91       	pop	r20
+     812:	3f 91       	pop	r19
+     814:	2f 91       	pop	r18
+     816:	0f 90       	pop	r0
+     818:	0b be       	out	0x3b, r0	; 59
+     81a:	0f 90       	pop	r0
+     81c:	0f be       	out	0x3f, r0	; 63
+     81e:	0f 90       	pop	r0
+     820:	1f 90       	pop	r1
+     822:	18 95       	reti
+#ifdef SEG7_ENABLE_CLOCK
+    // Legacy clock diagnostic only; the main application just scans digits.
+    // 1000 interrupts at 1 ms supply the only one-second clock tick.
     timer0_tick_count++;
-    if (timer0_tick_count >= 500) {
+    if (timer0_tick_count >= 1000) {
         timer0_tick_count = 0;
-     51e:	10 92 b2 05 	sts	0x05B2, r1	; 0x8005b2 <timer0_tick_count+0x1>
-     522:	10 92 b1 05 	sts	0x05B1, r1	; 0x8005b1 <timer0_tick_count>
+     824:	10 92 c9 03 	sts	0x03C9, r1	; 0x8003c9 <timer0_tick_count+0x1>
+     828:	10 92 c8 03 	sts	0x03C8, r1	; 0x8003c8 <timer0_tick_count>
         clock_tick_1s();
-     526:	0e 94 f6 02 	call	0x5ec	; 0x5ec <clock_tick_1s>
+     82c:	0e 94 be 04 	call	0x97c	; 0x97c <clock_tick_1s>
     }
+#endif
 }
-     52a:	e6 cf       	rjmp	.-52     	; 0x4f8 <__vector_15+0x44>
+     830:	e6 cf       	rjmp	.-52     	; 0x7fe <__vector_15+0x44>
 
-0000052c <button_update>:
+00000832 <seg7_set_decimal>:
+    current_digit = (current_digit + 1) % SEG7_NUM_DIGITS;
+}
+
+void seg7_set_decimal(uint32_t num, uint8_t width)
+{
+    if (width == 0 || width > SEG7_NUM_DIGITS) return;
+     832:	2f ef       	ldi	r18, 0xFF	; 255
+     834:	24 0f       	add	r18, r20
+     836:	28 30       	cpi	r18, 0x08	; 8
+     838:	10 f4       	brcc	.+4      	; 0x83e <seg7_set_decimal+0xc>
+     83a:	0c 94 c9 02 	jmp	0x592	; 0x592 <seg7_set_decimal.part.1>
+    for (uint8_t i = 0; i < width; i++) {
+        digits[SEG7_NUM_DIGITS - 1 - i] = num % 10;
+        num /= 10;
+    }
+    seg7_set_array(digits);
+}
+     83e:	08 95       	ret
+
+00000840 <action_seg_clear>:
+    lcd_clear();
+    lcd_write_line(0, title);
+    action_seg_draw_value();
+}
+
+void action_seg_clear(void) { action_seg_start("1. DISPLAY 0000", 0, 0); }
+     840:	40 e0       	ldi	r20, 0x00	; 0
+     842:	70 e0       	ldi	r23, 0x00	; 0
+     844:	60 e0       	ldi	r22, 0x00	; 0
+     846:	82 ef       	ldi	r24, 0xF2	; 242
+     848:	92 e0       	ldi	r25, 0x02	; 2
+     84a:	0c 94 57 03 	jmp	0x6ae	; 0x6ae <action_seg_start>
+
+0000084e <action_seg_set>:
+void action_seg_set(void) { action_seg_start("2. DISPLAY 9999", 9999, 0); }
+     84e:	40 e0       	ldi	r20, 0x00	; 0
+     850:	6f e0       	ldi	r22, 0x0F	; 15
+     852:	77 e2       	ldi	r23, 0x27	; 39
+     854:	82 e0       	ldi	r24, 0x02	; 2
+     856:	93 e0       	ldi	r25, 0x03	; 3
+     858:	0c 94 57 03 	jmp	0x6ae	; 0x6ae <action_seg_start>
+
+0000085c <action_seg_increase>:
+void action_seg_increase(void) { action_seg_start("3. INCREASE", 0, 1); }
+     85c:	41 e0       	ldi	r20, 0x01	; 1
+     85e:	70 e0       	ldi	r23, 0x00	; 0
+     860:	60 e0       	ldi	r22, 0x00	; 0
+     862:	82 e1       	ldi	r24, 0x12	; 18
+     864:	93 e0       	ldi	r25, 0x03	; 3
+     866:	0c 94 57 03 	jmp	0x6ae	; 0x6ae <action_seg_start>
+
+0000086a <action_seg_decrease>:
+void action_seg_decrease(void) { action_seg_start("4. DECREASE", 9999, -1); }
+     86a:	4f ef       	ldi	r20, 0xFF	; 255
+     86c:	6f e0       	ldi	r22, 0x0F	; 15
+     86e:	77 e2       	ldi	r23, 0x27	; 39
+     870:	8e e1       	ldi	r24, 0x1E	; 30
+     872:	93 e0       	ldi	r25, 0x03	; 3
+     874:	0c 94 57 03 	jmp	0x6ae	; 0x6ae <action_seg_start>
+
+00000878 <action_seg_input>:
+
+void action_seg_input(uint8_t pressed)
+{
+    if (action_direction > 0 && (pressed & BTN_BIT_UP) && action_value < 9999)
+     878:	90 91 c5 03 	lds	r25, 0x03C5	; 0x8003c5 <action_direction>
+     87c:	19 16       	cp	r1, r25
+     87e:	8c f4       	brge	.+34     	; 0x8a2 <action_seg_input+0x2a>
+     880:	82 ff       	sbrs	r24, 2
+     882:	1b c0       	rjmp	.+54     	; 0x8ba <action_seg_input+0x42>
+     884:	80 91 c6 03 	lds	r24, 0x03C6	; 0x8003c6 <action_value>
+     888:	90 91 c7 03 	lds	r25, 0x03C7	; 0x8003c7 <action_value+0x1>
+     88c:	8f 30       	cpi	r24, 0x0F	; 15
+     88e:	27 e2       	ldi	r18, 0x27	; 39
+     890:	92 07       	cpc	r25, r18
+     892:	98 f4       	brcc	.+38     	; 0x8ba <action_seg_input+0x42>
+        action_value++;
+     894:	01 96       	adiw	r24, 0x01	; 1
+    else if (action_direction < 0 && (pressed & BTN_BIT_DOWN) && action_value > 0)
+        action_value--;
+     896:	90 93 c7 03 	sts	0x03C7, r25	; 0x8003c7 <action_value+0x1>
+     89a:	80 93 c6 03 	sts	0x03C6, r24	; 0x8003c6 <action_value>
+    else return;
+    action_seg_draw_value();
+     89e:	0c 94 10 03 	jmp	0x620	; 0x620 <action_seg_draw_value>
+
+void action_seg_input(uint8_t pressed)
+{
+    if (action_direction > 0 && (pressed & BTN_BIT_UP) && action_value < 9999)
+        action_value++;
+    else if (action_direction < 0 && (pressed & BTN_BIT_DOWN) && action_value > 0)
+     8a2:	99 23       	and	r25, r25
+     8a4:	51 f0       	breq	.+20     	; 0x8ba <action_seg_input+0x42>
+     8a6:	83 ff       	sbrs	r24, 3
+     8a8:	08 c0       	rjmp	.+16     	; 0x8ba <action_seg_input+0x42>
+     8aa:	80 91 c6 03 	lds	r24, 0x03C6	; 0x8003c6 <action_value>
+     8ae:	90 91 c7 03 	lds	r25, 0x03C7	; 0x8003c7 <action_value+0x1>
+     8b2:	00 97       	sbiw	r24, 0x00	; 0
+     8b4:	11 f0       	breq	.+4      	; 0x8ba <action_seg_input+0x42>
+        action_value--;
+     8b6:	01 97       	sbiw	r24, 0x01	; 1
+     8b8:	ee cf       	rjmp	.-36     	; 0x896 <action_seg_input+0x1e>
+    else return;
+    action_seg_draw_value();
+}
+     8ba:	08 95       	ret
+
+000008bc <button_update>:
 static uint8_t last_raw    = 0x00;
 static uint8_t press_event = 0x00;
 static uint8_t held_event  = 0x00;
 static uint8_t hold_cnt[8] = {0};
 
 void button_update(void) {
-     52c:	cf 93       	push	r28
+     8bc:	cf 93       	push	r28
 }
 static inline uint8_t io_bus_read(uint16_t address) {
     return *(volatile uint8_t *)(uintptr_t)address;
-     52e:	20 91 00 11 	lds	r18, 0x1100	; 0x801100 <__bss_end+0xb2d>
+     8be:	20 91 00 11 	lds	r18, 0x1100	; 0x801100 <__bss_end+0xce2>
   READ_BUTTONS;
-     532:	20 93 d2 05 	sts	0x05D2, r18	; 0x8005d2 <buttons>
+     8c2:	20 93 1d 04 	sts	0x041D, r18	; 0x80041d <buttons>
   uint8_t raw = *(uint8_t *)(&buttons);
 
   // 1. Instant trigger on press (rising edge 0 -> 1)
   press_event = raw & ~last_raw;
-     536:	80 91 bf 05 	lds	r24, 0x05BF	; 0x8005bf <last_raw>
-     53a:	80 95       	com	r24
-     53c:	82 23       	and	r24, r18
-     53e:	80 93 be 05 	sts	0x05BE, r24	; 0x8005be <press_event>
-     542:	e5 eb       	ldi	r30, 0xB5	; 181
-     544:	f5 e0       	ldi	r31, 0x05	; 5
+     8c6:	80 91 d6 03 	lds	r24, 0x03D6	; 0x8003d6 <last_raw>
+     8ca:	80 95       	com	r24
+     8cc:	82 23       	and	r24, r18
+     8ce:	80 93 d5 03 	sts	0x03D5, r24	; 0x8003d5 <press_event>
+     8d2:	ec ec       	ldi	r30, 0xCC	; 204
+     8d4:	f3 e0       	ldi	r31, 0x03	; 3
   held_event  = 0x00;
-     546:	50 e0       	ldi	r21, 0x00	; 0
-     548:	40 e0       	ldi	r20, 0x00	; 0
-     54a:	30 e0       	ldi	r19, 0x00	; 0
+     8d6:	50 e0       	ldi	r21, 0x00	; 0
+     8d8:	40 e0       	ldi	r20, 0x00	; 0
+     8da:	30 e0       	ldi	r19, 0x00	; 0
 
   // 2. Auto-repeat handler when button is held down
   for (uint8_t i = 0; i < 8; i++) {
     uint8_t bit = (1 << i);
-     54c:	a1 e0       	ldi	r26, 0x01	; 1
-     54e:	b0 e0       	ldi	r27, 0x00	; 0
+     8dc:	a1 e0       	ldi	r26, 0x01	; 1
+     8de:	b0 e0       	ldi	r27, 0x00	; 0
       hold_cnt[i]++;
       if (hold_cnt[i] >= HOLD_THRESHOLD) {
         if ((hold_cnt[i] - HOLD_THRESHOLD) % HOLD_REPEAT_RATE == 0) {
           held_event |= bit;
           // Restart the interval so even a long hold continues repeating.
           hold_cnt[i] = HOLD_THRESHOLD - HOLD_REPEAT_RATE;
-     550:	cb e1       	ldi	r28, 0x1B	; 27
+     8e0:	cb e1       	ldi	r28, 0x1B	; 27
   press_event = raw & ~last_raw;
   held_event  = 0x00;
 
   // 2. Auto-repeat handler when button is held down
   for (uint8_t i = 0; i < 8; i++) {
     uint8_t bit = (1 << i);
-     552:	bd 01       	movw	r22, r26
-     554:	04 2e       	mov	r0, r20
-     556:	01 c0       	rjmp	.+2      	; 0x55a <button_update+0x2e>
-     558:	66 0f       	add	r22, r22
-     55a:	0a 94       	dec	r0
-     55c:	ea f7       	brpl	.-6      	; 0x558 <button_update+0x2c>
+     8e2:	bd 01       	movw	r22, r26
+     8e4:	04 2e       	mov	r0, r20
+     8e6:	01 c0       	rjmp	.+2      	; 0x8ea <button_update+0x2e>
+     8e8:	66 0f       	add	r22, r22
+     8ea:	0a 94       	dec	r0
+     8ec:	ea f7       	brpl	.-6      	; 0x8e8 <button_update+0x2c>
     if (raw & bit) {
-     55e:	82 2f       	mov	r24, r18
-     560:	86 23       	and	r24, r22
-     562:	c9 f0       	breq	.+50     	; 0x596 <button_update+0x6a>
+     8ee:	82 2f       	mov	r24, r18
+     8f0:	86 23       	and	r24, r22
+     8f2:	c9 f0       	breq	.+50     	; 0x926 <button_update+0x6a>
       hold_cnt[i]++;
-     564:	80 81       	ld	r24, Z
-     566:	8f 5f       	subi	r24, 0xFF	; 255
-     568:	80 83       	st	Z, r24
+     8f4:	80 81       	ld	r24, Z
+     8f6:	8f 5f       	subi	r24, 0xFF	; 255
+     8f8:	80 83       	st	Z, r24
       if (hold_cnt[i] >= HOLD_THRESHOLD) {
-     56a:	83 32       	cpi	r24, 0x23	; 35
-     56c:	40 f0       	brcs	.+16     	; 0x57e <button_update+0x52>
+     8fa:	83 32       	cpi	r24, 0x23	; 35
+     8fc:	40 f0       	brcs	.+16     	; 0x90e <button_update+0x52>
         if ((hold_cnt[i] - HOLD_THRESHOLD) % HOLD_REPEAT_RATE == 0) {
-     56e:	83 52       	subi	r24, 0x23	; 35
-     570:	99 0b       	sbc	r25, r25
-     572:	87 70       	andi	r24, 0x07	; 7
-     574:	99 27       	eor	r25, r25
-     576:	89 2b       	or	r24, r25
-     578:	11 f4       	brne	.+4      	; 0x57e <button_update+0x52>
+     8fe:	83 52       	subi	r24, 0x23	; 35
+     900:	99 0b       	sbc	r25, r25
+     902:	87 70       	andi	r24, 0x07	; 7
+     904:	99 27       	eor	r25, r25
+     906:	89 2b       	or	r24, r25
+     908:	11 f4       	brne	.+4      	; 0x90e <button_update+0x52>
           held_event |= bit;
-     57a:	36 2b       	or	r19, r22
+     90a:	36 2b       	or	r19, r22
           // Restart the interval so even a long hold continues repeating.
           hold_cnt[i] = HOLD_THRESHOLD - HOLD_REPEAT_RATE;
-     57c:	c0 83       	st	Z, r28
-     57e:	4f 5f       	subi	r20, 0xFF	; 255
-     580:	5f 4f       	sbci	r21, 0xFF	; 255
-     582:	31 96       	adiw	r30, 0x01	; 1
+     90c:	c0 83       	st	Z, r28
+     90e:	4f 5f       	subi	r20, 0xFF	; 255
+     910:	5f 4f       	sbci	r21, 0xFF	; 255
+     912:	31 96       	adiw	r30, 0x01	; 1
   // 1. Instant trigger on press (rising edge 0 -> 1)
   press_event = raw & ~last_raw;
   held_event  = 0x00;
 
   // 2. Auto-repeat handler when button is held down
   for (uint8_t i = 0; i < 8; i++) {
-     584:	48 30       	cpi	r20, 0x08	; 8
-     586:	51 05       	cpc	r21, r1
-     588:	21 f7       	brne	.-56     	; 0x552 <button_update+0x26>
-     58a:	30 93 bd 05 	sts	0x05BD, r19	; 0x8005bd <held_event>
+     914:	48 30       	cpi	r20, 0x08	; 8
+     916:	51 05       	cpc	r21, r1
+     918:	21 f7       	brne	.-56     	; 0x8e2 <button_update+0x26>
+     91a:	30 93 d4 03 	sts	0x03D4, r19	; 0x8003d4 <held_event>
     } else {
       hold_cnt[i] = 0;
     }
   }
 
   last_raw = raw;
-     58e:	20 93 bf 05 	sts	0x05BF, r18	; 0x8005bf <last_raw>
+     91e:	20 93 d6 03 	sts	0x03D6, r18	; 0x8003d6 <last_raw>
 }
-     592:	cf 91       	pop	r28
-     594:	08 95       	ret
+     922:	cf 91       	pop	r28
+     924:	08 95       	ret
           // Restart the interval so even a long hold continues repeating.
           hold_cnt[i] = HOLD_THRESHOLD - HOLD_REPEAT_RATE;
         }
       }
     } else {
       hold_cnt[i] = 0;
-     596:	10 82       	st	Z, r1
-     598:	f2 cf       	rjmp	.-28     	; 0x57e <button_update+0x52>
+     926:	10 82       	st	Z, r1
+     928:	f2 cf       	rjmp	.-28     	; 0x90e <button_update+0x52>
 
-0000059a <button_pressed>:
+0000092a <button_pressed>:
   }
 
   last_raw = raw;
 }
 
 uint8_t button_pressed(void)   { return press_event; }
-     59a:	80 91 be 05 	lds	r24, 0x05BE	; 0x8005be <press_event>
-     59e:	08 95       	ret
+     92a:	80 91 d5 03 	lds	r24, 0x03D5	; 0x8003d5 <press_event>
+     92e:	08 95       	ret
 
-000005a0 <button_held>:
+00000930 <button_held>:
 uint8_t button_held(void)      { return held_event;  }
-     5a0:	80 91 bd 05 	lds	r24, 0x05BD	; 0x8005bd <held_event>
-     5a4:	08 95       	ret
+     930:	80 91 d4 03 	lds	r24, 0x03D4	; 0x8003d4 <held_event>
+     934:	08 95       	ret
 
-000005a6 <button_state>:
+00000936 <button_state>:
 uint8_t button_state(void)     { return last_raw;    }
-     5a6:	80 91 bf 05 	lds	r24, 0x05BF	; 0x8005bf <last_raw>
-     5aa:	08 95       	ret
+     936:	80 91 d6 03 	lds	r24, 0x03D6	; 0x8003d6 <last_raw>
+     93a:	08 95       	ret
 
-000005ac <button_triggered>:
+0000093c <button_triggered>:
 uint8_t button_triggered(void) { return press_event | held_event; }
-     5ac:	90 91 be 05 	lds	r25, 0x05BE	; 0x8005be <press_event>
-     5b0:	80 91 bd 05 	lds	r24, 0x05BD	; 0x8005bd <held_event>
-     5b4:	89 2b       	or	r24, r25
-     5b6:	08 95       	ret
+     93c:	90 91 d5 03 	lds	r25, 0x03D5	; 0x8003d5 <press_event>
+     940:	80 91 d4 03 	lds	r24, 0x03D4	; 0x8003d4 <held_event>
+     944:	89 2b       	or	r24, r25
+     946:	08 95       	ret
 
-000005b8 <clock_start>:
+00000948 <clock_start>:
     clock_set_time(12, 0, 0);
     is_running = 1;
 }
 
 void clock_start(void) {
     is_running = 1;
-     5b8:	81 e0       	ldi	r24, 0x01	; 1
-     5ba:	80 93 06 01 	sts	0x0106, r24	; 0x800106 <is_running>
+     948:	81 e0       	ldi	r24, 0x01	; 1
+     94a:	80 93 08 01 	sts	0x0108, r24	; 0x800108 <is_running>
 }
-     5be:	08 95       	ret
+     94e:	08 95       	ret
 
-000005c0 <clock_pause>:
+00000950 <clock_pause>:
 
 void clock_pause(void) {
     is_running = 0;
-     5c0:	10 92 06 01 	sts	0x0106, r1	; 0x800106 <is_running>
+     950:	10 92 08 01 	sts	0x0108, r1	; 0x800108 <is_running>
 }
-     5c4:	08 95       	ret
+     954:	08 95       	ret
 
-000005c6 <clock_is_running>:
+00000956 <clock_is_running>:
 
 uint8_t clock_is_running(void) {
     return is_running;
-     5c6:	80 91 06 01 	lds	r24, 0x0106	; 0x800106 <is_running>
+     956:	80 91 08 01 	lds	r24, 0x0108	; 0x800108 <is_running>
 }
-     5ca:	08 95       	ret
+     95a:	08 95       	ret
 
-000005cc <clock_get_time>:
+0000095c <clock_get_time>:
         sys_time.seconds = (s < 60) ? s : 0;
     }
     clock_update_display();
 }
 
 void clock_get_time(ClockTime_t *t) {
-     5cc:	fc 01       	movw	r30, r24
+     95c:	fc 01       	movw	r30, r24
     if (t) {
-     5ce:	89 2b       	or	r24, r25
-     5d0:	61 f0       	breq	.+24     	; 0x5ea <clock_get_time+0x1e>
+     95e:	89 2b       	or	r24, r25
+     960:	61 f0       	breq	.+24     	; 0x97a <clock_get_time+0x1e>
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-     5d2:	8f b7       	in	r24, 0x3f	; 63
+     962:	8f b7       	in	r24, 0x3f	; 63
     return 1;
 }
 
 static __inline__ uint8_t __iCliRetVal(void)
 {
     cli();
-     5d4:	f8 94       	cli
+     964:	f8 94       	cli
             t->hours = sys_time.hours;
-     5d6:	90 91 07 01 	lds	r25, 0x0107	; 0x800107 <sys_time>
-     5da:	90 83       	st	Z, r25
+     966:	90 91 09 01 	lds	r25, 0x0109	; 0x800109 <sys_time>
+     96a:	90 83       	st	Z, r25
             t->minutes = sys_time.minutes;
-     5dc:	90 91 08 01 	lds	r25, 0x0108	; 0x800108 <sys_time+0x1>
-     5e0:	91 83       	std	Z+1, r25	; 0x01
+     96c:	90 91 0a 01 	lds	r25, 0x010A	; 0x80010a <sys_time+0x1>
+     970:	91 83       	std	Z+1, r25	; 0x01
             t->seconds = sys_time.seconds;
-     5e2:	90 91 09 01 	lds	r25, 0x0109	; 0x800109 <sys_time+0x2>
-     5e6:	92 83       	std	Z+2, r25	; 0x02
+     972:	90 91 0b 01 	lds	r25, 0x010B	; 0x80010b <sys_time+0x2>
+     976:	92 83       	std	Z+2, r25	; 0x02
     (void)__s;
 }
 
 static __inline__ void __iRestore(const  uint8_t *__s)
 {
     SREG = *__s;
-     5e8:	8f bf       	out	0x3f, r24	; 63
+     978:	8f bf       	out	0x3f, r24	; 63
         }
     }
 }
-     5ea:	08 95       	ret
+     97a:	08 95       	ret
 
-000005ec <clock_tick_1s>:
+0000097c <clock_tick_1s>:
 
 void clock_tick_1s(void) {
     if (!is_running) return;
-     5ec:	80 91 06 01 	lds	r24, 0x0106	; 0x800106 <is_running>
-     5f0:	88 23       	and	r24, r24
-     5f2:	09 f1       	breq	.+66     	; 0x636 <clock_tick_1s+0x4a>
+     97c:	80 91 08 01 	lds	r24, 0x0108	; 0x800108 <is_running>
+     980:	88 23       	and	r24, r24
+     982:	09 f1       	breq	.+66     	; 0x9c6 <clock_tick_1s+0x4a>
 
     sys_time.seconds++;
-     5f4:	80 91 09 01 	lds	r24, 0x0109	; 0x800109 <sys_time+0x2>
-     5f8:	8f 5f       	subi	r24, 0xFF	; 255
-     5fa:	80 93 09 01 	sts	0x0109, r24	; 0x800109 <sys_time+0x2>
+     984:	80 91 0b 01 	lds	r24, 0x010B	; 0x80010b <sys_time+0x2>
+     988:	8f 5f       	subi	r24, 0xFF	; 255
+     98a:	80 93 0b 01 	sts	0x010B, r24	; 0x80010b <sys_time+0x2>
     if (sys_time.seconds >= 60) {
-     5fe:	80 91 09 01 	lds	r24, 0x0109	; 0x800109 <sys_time+0x2>
-     602:	8c 33       	cpi	r24, 0x3C	; 60
-     604:	c0 f0       	brcs	.+48     	; 0x636 <clock_tick_1s+0x4a>
+     98e:	80 91 0b 01 	lds	r24, 0x010B	; 0x80010b <sys_time+0x2>
+     992:	8c 33       	cpi	r24, 0x3C	; 60
+     994:	c0 f0       	brcs	.+48     	; 0x9c6 <clock_tick_1s+0x4a>
         sys_time.seconds = 0;
-     606:	10 92 09 01 	sts	0x0109, r1	; 0x800109 <sys_time+0x2>
+     996:	10 92 0b 01 	sts	0x010B, r1	; 0x80010b <sys_time+0x2>
         sys_time.minutes++;
-     60a:	80 91 08 01 	lds	r24, 0x0108	; 0x800108 <sys_time+0x1>
-     60e:	8f 5f       	subi	r24, 0xFF	; 255
-     610:	80 93 08 01 	sts	0x0108, r24	; 0x800108 <sys_time+0x1>
+     99a:	80 91 0a 01 	lds	r24, 0x010A	; 0x80010a <sys_time+0x1>
+     99e:	8f 5f       	subi	r24, 0xFF	; 255
+     9a0:	80 93 0a 01 	sts	0x010A, r24	; 0x80010a <sys_time+0x1>
         if (sys_time.minutes >= 60) {
-     614:	80 91 08 01 	lds	r24, 0x0108	; 0x800108 <sys_time+0x1>
-     618:	8c 33       	cpi	r24, 0x3C	; 60
-     61a:	68 f0       	brcs	.+26     	; 0x636 <clock_tick_1s+0x4a>
+     9a4:	80 91 0a 01 	lds	r24, 0x010A	; 0x80010a <sys_time+0x1>
+     9a8:	8c 33       	cpi	r24, 0x3C	; 60
+     9aa:	68 f0       	brcs	.+26     	; 0x9c6 <clock_tick_1s+0x4a>
             sys_time.minutes = 0;
-     61c:	10 92 08 01 	sts	0x0108, r1	; 0x800108 <sys_time+0x1>
+     9ac:	10 92 0a 01 	sts	0x010A, r1	; 0x80010a <sys_time+0x1>
             sys_time.hours++;
-     620:	80 91 07 01 	lds	r24, 0x0107	; 0x800107 <sys_time>
-     624:	8f 5f       	subi	r24, 0xFF	; 255
-     626:	80 93 07 01 	sts	0x0107, r24	; 0x800107 <sys_time>
+     9b0:	80 91 09 01 	lds	r24, 0x0109	; 0x800109 <sys_time>
+     9b4:	8f 5f       	subi	r24, 0xFF	; 255
+     9b6:	80 93 09 01 	sts	0x0109, r24	; 0x800109 <sys_time>
             if (sys_time.hours >= 24) {
-     62a:	80 91 07 01 	lds	r24, 0x0107	; 0x800107 <sys_time>
-     62e:	88 31       	cpi	r24, 0x18	; 24
-     630:	10 f0       	brcs	.+4      	; 0x636 <clock_tick_1s+0x4a>
+     9ba:	80 91 09 01 	lds	r24, 0x0109	; 0x800109 <sys_time>
+     9be:	88 31       	cpi	r24, 0x18	; 24
+     9c0:	10 f0       	brcs	.+4      	; 0x9c6 <clock_tick_1s+0x4a>
                 sys_time.hours = 0;
-     632:	10 92 07 01 	sts	0x0107, r1	; 0x800107 <sys_time>
+     9c2:	10 92 09 01 	sts	0x0109, r1	; 0x800109 <sys_time>
             }
         }
     }
 }
-     636:	08 95       	ret
+     9c6:	08 95       	ret
 
-00000638 <clock_update_display>:
+000009c8 <clock_update_display>:
 
 void clock_update_display(void) {
-     638:	cf 93       	push	r28
-     63a:	df 93       	push	r29
-     63c:	cd b7       	in	r28, 0x3d	; 61
-     63e:	de b7       	in	r29, 0x3e	; 62
-     640:	29 97       	sbiw	r28, 0x09	; 9
-     642:	0f b6       	in	r0, 0x3f	; 63
-     644:	f8 94       	cli
-     646:	de bf       	out	0x3e, r29	; 62
-     648:	0f be       	out	0x3f, r0	; 63
-     64a:	cd bf       	out	0x3d, r28	; 61
+     9c8:	cf 93       	push	r28
+     9ca:	df 93       	push	r29
+     9cc:	cd b7       	in	r28, 0x3d	; 61
+     9ce:	de b7       	in	r29, 0x3e	; 62
+     9d0:	2b 97       	sbiw	r28, 0x0b	; 11
+     9d2:	0f b6       	in	r0, 0x3f	; 63
+     9d4:	f8 94       	cli
+     9d6:	de bf       	out	0x3e, r29	; 62
+     9d8:	0f be       	out	0x3f, r0	; 63
+     9da:	cd bf       	out	0x3d, r28	; 61
     ClockTime_t snapshot;
     clock_get_time(&snapshot);
-     64c:	ce 01       	movw	r24, r28
-     64e:	07 96       	adiw	r24, 0x07	; 7
-     650:	0e 94 e6 02 	call	0x5cc	; 0x5cc <clock_get_time>
-    // Decimal points on Digit 1 (Hours ones) and Digit 3 (Minutes ones):
-    // (1 << 1) | (1 << 3) = 0b00001010
-    seg7_set_dp_mask((1 << 1) | (1 << 3));
-     654:	8a e0       	ldi	r24, 0x0A	; 10
-     656:	0e 94 26 02 	call	0x44c	; 0x44c <seg7_set_dp_mask>
-
-    const uint8_t digits[SEG7_NUM_DIGITS] = {
-        snapshot.hours / 10, snapshot.hours % 10,
-     65a:	8f 81       	ldd	r24, Y+7	; 0x07
-    clock_get_time(&snapshot);
-    // Decimal points on Digit 1 (Hours ones) and Digit 3 (Minutes ones):
-    // (1 << 1) | (1 << 3) = 0b00001010
-    seg7_set_dp_mask((1 << 1) | (1 << 3));
-
-    const uint8_t digits[SEG7_NUM_DIGITS] = {
-     65c:	2a e0       	ldi	r18, 0x0A	; 10
-     65e:	62 2f       	mov	r22, r18
-     660:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     664:	89 83       	std	Y+1, r24	; 0x01
-     666:	9a 83       	std	Y+2, r25	; 0x02
-        snapshot.hours / 10, snapshot.hours % 10,
-        snapshot.minutes / 10, snapshot.minutes % 10,
-     668:	88 85       	ldd	r24, Y+8	; 0x08
-    clock_get_time(&snapshot);
-    // Decimal points on Digit 1 (Hours ones) and Digit 3 (Minutes ones):
-    // (1 << 1) | (1 << 3) = 0b00001010
-    seg7_set_dp_mask((1 << 1) | (1 << 3));
-
-    const uint8_t digits[SEG7_NUM_DIGITS] = {
-     66a:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     66e:	8b 83       	std	Y+3, r24	; 0x03
-     670:	9c 83       	std	Y+4, r25	; 0x04
-        snapshot.hours / 10, snapshot.hours % 10,
-        snapshot.minutes / 10, snapshot.minutes % 10,
-        snapshot.seconds / 10, snapshot.seconds % 10
-     672:	89 85       	ldd	r24, Y+9	; 0x09
-    clock_get_time(&snapshot);
-    // Decimal points on Digit 1 (Hours ones) and Digit 3 (Minutes ones):
-    // (1 << 1) | (1 << 3) = 0b00001010
-    seg7_set_dp_mask((1 << 1) | (1 << 3));
-
-    const uint8_t digits[SEG7_NUM_DIGITS] = {
-     674:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     678:	8d 83       	std	Y+5, r24	; 0x05
-     67a:	9e 83       	std	Y+6, r25	; 0x06
-        snapshot.hours / 10, snapshot.hours % 10,
-        snapshot.minutes / 10, snapshot.minutes % 10,
-        snapshot.seconds / 10, snapshot.seconds % 10
-    };
+     9dc:	ce 01       	movw	r24, r28
+     9de:	09 96       	adiw	r24, 0x09	; 9
+     9e0:	0e 94 ae 04 	call	0x95c	; 0x95c <clock_get_time>
+    // Right-align HH.MM.SS; leave the two extra leftmost positions blank.
+    const uint8_t offset = SEG7_NUM_DIGITS - 6;
+    seg7_set_dp_mask((1u << (offset + 1)) | (1u << (offset + 3)));
+     9e4:	88 e2       	ldi	r24, 0x28	; 40
+     9e6:	0e 94 aa 03 	call	0x754	; 0x754 <seg7_set_dp_mask>
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < offset; i++) digits[i] = SEG7_BLANK;
+     9ea:	8f ef       	ldi	r24, 0xFF	; 255
+     9ec:	89 83       	std	Y+1, r24	; 0x01
+     9ee:	8a 83       	std	Y+2, r24	; 0x02
+    digits[offset] = snapshot.hours / 10;
+     9f0:	89 85       	ldd	r24, Y+9	; 0x09
+     9f2:	2a e0       	ldi	r18, 0x0A	; 10
+     9f4:	62 2f       	mov	r22, r18
+     9f6:	0e 94 15 0a 	call	0x142a	; 0x142a <__udivmodqi4>
+     9fa:	8b 83       	std	Y+3, r24	; 0x03
+    digits[offset + 1] = snapshot.hours % 10;
+     9fc:	9c 83       	std	Y+4, r25	; 0x04
+    digits[offset + 2] = snapshot.minutes / 10;
+     9fe:	8a 85       	ldd	r24, Y+10	; 0x0a
+     a00:	0e 94 15 0a 	call	0x142a	; 0x142a <__udivmodqi4>
+     a04:	8d 83       	std	Y+5, r24	; 0x05
+    digits[offset + 3] = snapshot.minutes % 10;
+     a06:	9e 83       	std	Y+6, r25	; 0x06
+    digits[offset + 4] = snapshot.seconds / 10;
+     a08:	8b 85       	ldd	r24, Y+11	; 0x0b
+     a0a:	0e 94 15 0a 	call	0x142a	; 0x142a <__udivmodqi4>
+     a0e:	8f 83       	std	Y+7, r24	; 0x07
+    digits[offset + 5] = snapshot.seconds % 10;
+     a10:	98 87       	std	Y+8, r25	; 0x08
     seg7_set_array(digits);
-     67c:	ce 01       	movw	r24, r28
-     67e:	01 96       	adiw	r24, 0x01	; 1
-     680:	0e 94 db 01 	call	0x3b6	; 0x3b6 <seg7_set_array>
+     a12:	ce 01       	movw	r24, r28
+     a14:	01 96       	adiw	r24, 0x01	; 1
+     a16:	0e 94 b9 02 	call	0x572	; 0x572 <seg7_set_array>
 }
-     684:	29 96       	adiw	r28, 0x09	; 9
-     686:	0f b6       	in	r0, 0x3f	; 63
-     688:	f8 94       	cli
-     68a:	de bf       	out	0x3e, r29	; 62
-     68c:	0f be       	out	0x3f, r0	; 63
-     68e:	cd bf       	out	0x3d, r28	; 61
-     690:	df 91       	pop	r29
-     692:	cf 91       	pop	r28
-     694:	08 95       	ret
+     a1a:	2b 96       	adiw	r28, 0x0b	; 11
+     a1c:	0f b6       	in	r0, 0x3f	; 63
+     a1e:	f8 94       	cli
+     a20:	de bf       	out	0x3e, r29	; 62
+     a22:	0f be       	out	0x3f, r0	; 63
+     a24:	cd bf       	out	0x3d, r28	; 61
+     a26:	df 91       	pop	r29
+     a28:	cf 91       	pop	r28
+     a2a:	08 95       	ret
 
-00000696 <clock_set_time>:
+00000a2c <clock_set_time>:
 uint8_t clock_is_running(void) {
     return is_running;
 }
 
 void clock_set_time(uint8_t h, uint8_t m, uint8_t s) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-     696:	9f b7       	in	r25, 0x3f	; 63
+     a2c:	9f b7       	in	r25, 0x3f	; 63
     return 1;
 }
 
 static __inline__ uint8_t __iCliRetVal(void)
 {
     cli();
-     698:	f8 94       	cli
+     a2e:	f8 94       	cli
         sys_time.hours = (h < 24) ? h : 0;
-     69a:	88 31       	cpi	r24, 0x18	; 24
-     69c:	08 f0       	brcs	.+2      	; 0x6a0 <clock_set_time+0xa>
-     69e:	80 e0       	ldi	r24, 0x00	; 0
-     6a0:	80 93 07 01 	sts	0x0107, r24	; 0x800107 <sys_time>
+     a30:	88 31       	cpi	r24, 0x18	; 24
+     a32:	08 f0       	brcs	.+2      	; 0xa36 <clock_set_time+0xa>
+     a34:	80 e0       	ldi	r24, 0x00	; 0
+     a36:	80 93 09 01 	sts	0x0109, r24	; 0x800109 <sys_time>
         sys_time.minutes = (m < 60) ? m : 0;
-     6a4:	6c 33       	cpi	r22, 0x3C	; 60
-     6a6:	08 f0       	brcs	.+2      	; 0x6aa <clock_set_time+0x14>
-     6a8:	60 e0       	ldi	r22, 0x00	; 0
-     6aa:	60 93 08 01 	sts	0x0108, r22	; 0x800108 <sys_time+0x1>
+     a3a:	6c 33       	cpi	r22, 0x3C	; 60
+     a3c:	08 f0       	brcs	.+2      	; 0xa40 <clock_set_time+0x14>
+     a3e:	60 e0       	ldi	r22, 0x00	; 0
+     a40:	60 93 0a 01 	sts	0x010A, r22	; 0x80010a <sys_time+0x1>
         sys_time.seconds = (s < 60) ? s : 0;
-     6ae:	4c 33       	cpi	r20, 0x3C	; 60
-     6b0:	08 f0       	brcs	.+2      	; 0x6b4 <clock_set_time+0x1e>
-     6b2:	40 e0       	ldi	r20, 0x00	; 0
-     6b4:	40 93 09 01 	sts	0x0109, r20	; 0x800109 <sys_time+0x2>
+     a44:	4c 33       	cpi	r20, 0x3C	; 60
+     a46:	08 f0       	brcs	.+2      	; 0xa4a <clock_set_time+0x1e>
+     a48:	40 e0       	ldi	r20, 0x00	; 0
+     a4a:	40 93 0b 01 	sts	0x010B, r20	; 0x80010b <sys_time+0x2>
     (void)__s;
 }
 
 static __inline__ void __iRestore(const  uint8_t *__s)
 {
     SREG = *__s;
-     6b8:	9f bf       	out	0x3f, r25	; 63
+     a4e:	9f bf       	out	0x3f, r25	; 63
     }
     clock_update_display();
-     6ba:	0c 94 1c 03 	jmp	0x638	; 0x638 <clock_update_display>
+     a50:	0c 94 e4 04 	jmp	0x9c8	; 0x9c8 <clock_update_display>
 
-000006be <clock_init>:
+00000a54 <clock_init>:
 
 static volatile ClockTime_t sys_time = {12, 0, 0};
 static volatile uint8_t is_running = 1;
 
 void clock_init(void) {
     clock_set_time(12, 0, 0);
-     6be:	40 e0       	ldi	r20, 0x00	; 0
-     6c0:	60 e0       	ldi	r22, 0x00	; 0
-     6c2:	8c e0       	ldi	r24, 0x0C	; 12
-     6c4:	0e 94 4b 03 	call	0x696	; 0x696 <clock_set_time>
+     a54:	40 e0       	ldi	r20, 0x00	; 0
+     a56:	60 e0       	ldi	r22, 0x00	; 0
+     a58:	8c e0       	ldi	r24, 0x0C	; 12
+     a5a:	0e 94 16 05 	call	0xa2c	; 0xa2c <clock_set_time>
     is_running = 1;
-     6c8:	81 e0       	ldi	r24, 0x01	; 1
-     6ca:	80 93 06 01 	sts	0x0106, r24	; 0x800106 <is_running>
+     a5e:	81 e0       	ldi	r24, 0x01	; 1
+     a60:	80 93 08 01 	sts	0x0108, r24	; 0x800108 <is_running>
 }
-     6ce:	08 95       	ret
+     a64:	08 95       	ret
 
-000006d0 <action_7seg_time>:
-// ==========================================
-// 8. ACTION IMPLEMENTATIONS
-// ==========================================
+00000a66 <link_menu>:
+static MenuItem *active_action;
 
-// --- Mode 1: Display Current Running Real-Time Clock ---
-static void action_7seg_time(void) {
-     6d0:	cf 93       	push	r28
-     6d2:	df 93       	push	r29
-     6d4:	cd b7       	in	r28, 0x3d	; 61
-     6d6:	de b7       	in	r29, 0x3e	; 62
-     6d8:	68 97       	sbiw	r28, 0x18	; 24
-     6da:	0f b6       	in	r0, 0x3f	; 63
-     6dc:	f8 94       	cli
-     6de:	de bf       	out	0x3e, r29	; 62
-     6e0:	0f be       	out	0x3f, r0	; 63
-     6e2:	cd bf       	out	0x3d, r28	; 61
-    ClockTime_t ct;
-    clock_get_time(&ct);
-     6e4:	ce 01       	movw	r24, r28
-     6e6:	46 96       	adiw	r24, 0x16	; 22
-     6e8:	0e 94 e6 02 	call	0x5cc	; 0x5cc <clock_get_time>
-    clock_update_display(); // Updates 7-segment display with HH.MM.SS (DPs enabled!)
-     6ec:	0e 94 1c 03 	call	0x638	; 0x638 <clock_update_display>
-
-    lcd_set_cursor(0, 0);
-     6f0:	60 e0       	ldi	r22, 0x00	; 0
-     6f2:	80 e0       	ldi	r24, 0x00	; 0
-     6f4:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== CURRENT TIME ===");
-     6f8:	8a e0       	ldi	r24, 0x0A	; 10
-     6fa:	93 e0       	ldi	r25, 0x03	; 3
-     6fc:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-
-    char row1[21];
-    row1[0] = ' '; row1[1] = 'T'; row1[2] = 'I'; row1[3] = 'M'; row1[4] = 'E'; row1[5] = ':';
-     700:	20 e2       	ldi	r18, 0x20	; 32
-     702:	29 83       	std	Y+1, r18	; 0x01
-     704:	84 e5       	ldi	r24, 0x54	; 84
-     706:	8a 83       	std	Y+2, r24	; 0x02
-     708:	89 e4       	ldi	r24, 0x49	; 73
-     70a:	8b 83       	std	Y+3, r24	; 0x03
-     70c:	8d e4       	ldi	r24, 0x4D	; 77
-     70e:	8c 83       	std	Y+4, r24	; 0x04
-     710:	85 e4       	ldi	r24, 0x45	; 69
-     712:	8d 83       	std	Y+5, r24	; 0x05
-     714:	4a e3       	ldi	r20, 0x3A	; 58
-     716:	4e 83       	std	Y+6, r20	; 0x06
-    row1[6] = ' '; row1[7] = ' ';
-     718:	2f 83       	std	Y+7, r18	; 0x07
-     71a:	28 87       	std	Y+8, r18	; 0x08
-    row1[8] = '0' + (ct.hours / 10);
-     71c:	8e 89       	ldd	r24, Y+22	; 0x16
-     71e:	3a e0       	ldi	r19, 0x0A	; 10
-     720:	63 2f       	mov	r22, r19
-     722:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     726:	80 5d       	subi	r24, 0xD0	; 208
-     728:	89 87       	std	Y+9, r24	; 0x09
-    row1[9] = '0' + (ct.hours % 10);
-     72a:	90 5d       	subi	r25, 0xD0	; 208
-     72c:	9a 87       	std	Y+10, r25	; 0x0a
-    row1[10] = ' '; row1[11] = ':'; row1[12] = ' ';
-     72e:	2b 87       	std	Y+11, r18	; 0x0b
-     730:	4c 87       	std	Y+12, r20	; 0x0c
-     732:	2d 87       	std	Y+13, r18	; 0x0d
-    row1[13] = '0' + (ct.minutes / 10);
-     734:	8f 89       	ldd	r24, Y+23	; 0x17
-     736:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     73a:	80 5d       	subi	r24, 0xD0	; 208
-     73c:	8e 87       	std	Y+14, r24	; 0x0e
-    row1[14] = '0' + (ct.minutes % 10);
-     73e:	90 5d       	subi	r25, 0xD0	; 208
-     740:	9f 87       	std	Y+15, r25	; 0x0f
-    row1[15] = ' '; row1[16] = ':'; row1[17] = ' ';
-     742:	28 8b       	std	Y+16, r18	; 0x10
-     744:	49 8b       	std	Y+17, r20	; 0x11
-     746:	2a 8b       	std	Y+18, r18	; 0x12
-    row1[18] = '0' + (ct.seconds / 10);
-     748:	88 8d       	ldd	r24, Y+24	; 0x18
-     74a:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     74e:	80 5d       	subi	r24, 0xD0	; 208
-     750:	8b 8b       	std	Y+19, r24	; 0x13
-    row1[19] = '0' + (ct.seconds % 10);
-     752:	90 5d       	subi	r25, 0xD0	; 208
-     754:	9c 8b       	std	Y+20, r25	; 0x14
-    row1[20] = '\0';
-     756:	1d 8a       	std	Y+21, r1	; 0x15
-    lcd_set_cursor(1, 0);
-     758:	60 e0       	ldi	r22, 0x00	; 0
-     75a:	81 e0       	ldi	r24, 0x01	; 1
-     75c:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string(row1);
-     760:	ce 01       	movw	r24, r28
-     762:	01 96       	adiw	r24, 0x01	; 1
-     764:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-
-    lcd_set_cursor(2, 0);
-     768:	60 e0       	ldi	r22, 0x00	; 0
-     76a:	82 e0       	ldi	r24, 0x02	; 2
-     76c:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("REAL-TIME CLOCK RUN ");
-     770:	8f e1       	ldi	r24, 0x1F	; 31
-     772:	93 e0       	ldi	r25, 0x03	; 3
-     774:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     778:	60 e0       	ldi	r22, 0x00	; 0
-     77a:	83 e0       	ldi	r24, 0x03	; 3
-     77c:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     780:	84 e3       	ldi	r24, 0x34	; 52
-     782:	93 e0       	ldi	r25, 0x03	; 3
-     784:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-}
-     788:	68 96       	adiw	r28, 0x18	; 24
-     78a:	0f b6       	in	r0, 0x3f	; 63
-     78c:	f8 94       	cli
-     78e:	de bf       	out	0x3e, r29	; 62
-     790:	0f be       	out	0x3f, r0	; 63
-     792:	cd bf       	out	0x3d, r28	; 61
-     794:	df 91       	pop	r29
-     796:	cf 91       	pop	r28
-     798:	08 95       	ret
-
-0000079a <adjust_draw_lcd>:
-    lcd_clear();
-    adjust_draw_lcd();
-    adjust_update_7seg();
-}
-
-static void adjust_draw_lcd(void) {
-     79a:	cf 93       	push	r28
-     79c:	df 93       	push	r29
-     79e:	cd b7       	in	r28, 0x3d	; 61
-     7a0:	de b7       	in	r29, 0x3e	; 62
-     7a2:	aa 97       	sbiw	r28, 0x2a	; 42
-     7a4:	0f b6       	in	r0, 0x3f	; 63
-     7a6:	f8 94       	cli
-     7a8:	de bf       	out	0x3e, r29	; 62
-     7aa:	0f be       	out	0x3f, r0	; 63
-     7ac:	cd bf       	out	0x3d, r28	; 61
-    lcd_set_cursor(0, 0);
-     7ae:	60 e0       	ldi	r22, 0x00	; 0
-     7b0:	80 e0       	ldi	r24, 0x00	; 0
-     7b2:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== ADJUST CLOCK ===");
-     7b6:	89 e4       	ldi	r24, 0x49	; 73
-     7b8:	93 e0       	ldi	r25, 0x03	; 3
-     7ba:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-
-    // Row 1: " TIME:  HH : MM : SS"
-    char row1[21];
-    row1[0] = ' '; row1[1] = 'T'; row1[2] = 'I'; row1[3] = 'M'; row1[4] = 'E'; row1[5] = ':';
-     7be:	80 e2       	ldi	r24, 0x20	; 32
-     7c0:	8e 8b       	std	Y+22, r24	; 0x16
-     7c2:	94 e5       	ldi	r25, 0x54	; 84
-     7c4:	9f 8b       	std	Y+23, r25	; 0x17
-     7c6:	99 e4       	ldi	r25, 0x49	; 73
-     7c8:	98 8f       	std	Y+24, r25	; 0x18
-     7ca:	9d e4       	ldi	r25, 0x4D	; 77
-     7cc:	99 8f       	std	Y+25, r25	; 0x19
-     7ce:	95 e4       	ldi	r25, 0x45	; 69
-     7d0:	9a 8f       	std	Y+26, r25	; 0x1a
-     7d2:	9a e3       	ldi	r25, 0x3A	; 58
-     7d4:	9b 8f       	std	Y+27, r25	; 0x1b
-    row1[6] = ' '; row1[7] = ' ';
-     7d6:	8c 8f       	std	Y+28, r24	; 0x1c
-     7d8:	8d 8f       	std	Y+29, r24	; 0x1d
-    row1[8] = '0' + adjust_digits[0];
-     7da:	eb e0       	ldi	r30, 0x0B	; 11
-     7dc:	f1 e0       	ldi	r31, 0x01	; 1
-     7de:	20 81       	ld	r18, Z
-     7e0:	20 5d       	subi	r18, 0xD0	; 208
-     7e2:	2e 8f       	std	Y+30, r18	; 0x1e
-    row1[9] = '0' + adjust_digits[1];
-     7e4:	21 81       	ldd	r18, Z+1	; 0x01
-     7e6:	20 5d       	subi	r18, 0xD0	; 208
-     7e8:	2f 8f       	std	Y+31, r18	; 0x1f
-    row1[10] = ' '; row1[11] = ':'; row1[12] = ' ';
-     7ea:	88 a3       	std	Y+32, r24	; 0x20
-     7ec:	99 a3       	std	Y+33, r25	; 0x21
-     7ee:	8a a3       	std	Y+34, r24	; 0x22
-    row1[13] = '0' + adjust_digits[2];
-     7f0:	22 81       	ldd	r18, Z+2	; 0x02
-     7f2:	20 5d       	subi	r18, 0xD0	; 208
-     7f4:	2b a3       	std	Y+35, r18	; 0x23
-    row1[14] = '0' + adjust_digits[3];
-     7f6:	23 81       	ldd	r18, Z+3	; 0x03
-     7f8:	20 5d       	subi	r18, 0xD0	; 208
-     7fa:	2c a3       	std	Y+36, r18	; 0x24
-    row1[15] = ' '; row1[16] = ':'; row1[17] = ' ';
-     7fc:	8d a3       	std	Y+37, r24	; 0x25
-     7fe:	9e a3       	std	Y+38, r25	; 0x26
-     800:	8f a3       	std	Y+39, r24	; 0x27
-    row1[18] = '0' + adjust_digits[4];
-     802:	84 81       	ldd	r24, Z+4	; 0x04
-     804:	80 5d       	subi	r24, 0xD0	; 208
-     806:	88 a7       	std	Y+40, r24	; 0x28
-    row1[19] = '0' + adjust_digits[5];
-     808:	85 81       	ldd	r24, Z+5	; 0x05
-     80a:	80 5d       	subi	r24, 0xD0	; 208
-     80c:	89 a7       	std	Y+41, r24	; 0x29
-    row1[20] = '\0';
-     80e:	1a a6       	std	Y+42, r1	; 0x2a
-    lcd_set_cursor(1, 0);
-     810:	60 e0       	ldi	r22, 0x00	; 0
-     812:	81 e0       	ldi	r24, 0x01	; 1
-     814:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string(row1);
-     818:	ce 01       	movw	r24, r28
-     81a:	46 96       	adiw	r24, 0x16	; 22
-     81c:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-
-    // Row 2: " CURSOR:        ^   " (Arrow directly beneath the selected digit)
-    char row2[21] = " CURSOR:            ";
-     820:	85 e1       	ldi	r24, 0x15	; 21
-     822:	e3 e7       	ldi	r30, 0x73	; 115
-     824:	f3 e0       	ldi	r31, 0x03	; 3
-     826:	de 01       	movw	r26, r28
-     828:	11 96       	adiw	r26, 0x01	; 1
-     82a:	01 90       	ld	r0, Z+
-     82c:	0d 92       	st	X+, r0
-     82e:	8a 95       	dec	r24
-     830:	e1 f7       	brne	.-8      	; 0x82a <adjust_draw_lcd+0x90>
-    static const uint8_t arrow_cols[6] = {8, 9, 13, 14, 18, 19};
-    row2[arrow_cols[adjust_pos]] = '^';
-     832:	e0 91 c1 05 	lds	r30, 0x05C1	; 0x8005c1 <adjust_pos>
-     836:	f0 e0       	ldi	r31, 0x00	; 0
-     838:	ec 5f       	subi	r30, 0xFC	; 252
-     83a:	fc 4f       	sbci	r31, 0xFC	; 252
-     83c:	e0 81       	ld	r30, Z
-     83e:	81 e0       	ldi	r24, 0x01	; 1
-     840:	90 e0       	ldi	r25, 0x00	; 0
-     842:	8c 0f       	add	r24, r28
-     844:	9d 1f       	adc	r25, r29
-     846:	8e 0f       	add	r24, r30
-     848:	91 1d       	adc	r25, r1
-     84a:	fc 01       	movw	r30, r24
-     84c:	8e e5       	ldi	r24, 0x5E	; 94
-     84e:	80 83       	st	Z, r24
-    row2[20] = '\0';
-     850:	1d 8a       	std	Y+21, r1	; 0x15
-    lcd_set_cursor(2, 0);
-     852:	60 e0       	ldi	r22, 0x00	; 0
-     854:	82 e0       	ldi	r24, 0x02	; 2
-     856:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string(row2);
-     85a:	ce 01       	movw	r24, r28
-     85c:	01 96       	adiw	r24, 0x01	; 1
-     85e:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-
-    // Row 3: Navigation helpers
-    lcd_set_cursor(3, 0);
-     862:	60 e0       	ldi	r22, 0x00	; 0
-     864:	83 e0       	ldi	r24, 0x03	; 3
-     866:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("GO:Save       1:Exit");
-     86a:	8e e5       	ldi	r24, 0x5E	; 94
-     86c:	93 e0       	ldi	r25, 0x03	; 3
-     86e:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-}
-     872:	aa 96       	adiw	r28, 0x2a	; 42
-     874:	0f b6       	in	r0, 0x3f	; 63
-     876:	f8 94       	cli
-     878:	de bf       	out	0x3e, r29	; 62
-     87a:	0f be       	out	0x3f, r0	; 63
-     87c:	cd bf       	out	0x3d, r28	; 61
-     87e:	df 91       	pop	r29
-     880:	cf 91       	pop	r28
-     882:	08 95       	ret
-
-00000884 <action_version>:
-    lcd_send_string("LEFT:Back     1:Exit");
-}
-
-// --- System Info Actions ---
-static void action_version(void) {
-    lcd_set_cursor(0, 0);
-     884:	60 e0       	ldi	r22, 0x00	; 0
-     886:	80 e0       	ldi	r24, 0x00	; 0
-     888:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== SYSTEM INFO ====");
-     88c:	88 e8       	ldi	r24, 0x88	; 136
-     88e:	93 e0       	ldi	r25, 0x03	; 3
-     890:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(1, 0);
-     894:	60 e0       	ldi	r22, 0x00	; 0
-     896:	81 e0       	ldi	r24, 0x01	; 1
-     898:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("FIRMWARE: V2.0 FINAL");
-     89c:	8d e9       	ldi	r24, 0x9D	; 157
-     89e:	93 e0       	ldi	r25, 0x03	; 3
-     8a0:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(2, 0);
-     8a4:	60 e0       	ldi	r22, 0x00	; 0
-     8a6:	82 e0       	ldi	r24, 0x02	; 2
-     8a8:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("BUILD DATE: OCT 2026");
-     8ac:	82 eb       	ldi	r24, 0xB2	; 178
-     8ae:	93 e0       	ldi	r25, 0x03	; 3
-     8b0:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     8b4:	60 e0       	ldi	r22, 0x00	; 0
-     8b6:	83 e0       	ldi	r24, 0x03	; 3
-     8b8:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     8bc:	84 e3       	ldi	r24, 0x34	; 52
-     8be:	93 e0       	ldi	r25, 0x03	; 3
-     8c0:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
-
-000008c4 <action_about>:
-}
-
-static void action_about(void) {
-    lcd_set_cursor(0, 0);
-     8c4:	60 e0       	ldi	r22, 0x00	; 0
-     8c6:	80 e0       	ldi	r24, 0x00	; 0
-     8c8:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== ATMEGA128A =====");
-     8cc:	87 ec       	ldi	r24, 0xC7	; 199
-     8ce:	93 e0       	ldi	r25, 0x03	; 3
-     8d0:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(1, 0);
-     8d4:	60 e0       	ldi	r22, 0x00	; 0
-     8d6:	81 e0       	ldi	r24, 0x01	; 1
-     8d8:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("16MHZ EXT MEM BUS   ");
-     8dc:	8c ed       	ldi	r24, 0xDC	; 220
-     8de:	93 e0       	ldi	r25, 0x03	; 3
-     8e0:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(2, 0);
-     8e4:	60 e0       	ldi	r22, 0x00	; 0
-     8e6:	82 e0       	ldi	r24, 0x02	; 2
-     8e8:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("SCHMITT TRIGGER IN  ");
-     8ec:	81 ef       	ldi	r24, 0xF1	; 241
-     8ee:	93 e0       	ldi	r25, 0x03	; 3
-     8f0:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     8f4:	60 e0       	ldi	r22, 0x00	; 0
-     8f6:	83 e0       	ldi	r24, 0x03	; 3
-     8f8:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     8fc:	84 e3       	ldi	r24, 0x34	; 52
-     8fe:	93 e0       	ldi	r25, 0x03	; 3
-     900:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
-
-00000904 <adjust_update_7seg>:
-    // Row 3: Navigation helpers
-    lcd_set_cursor(3, 0);
-    lcd_send_string("GO:Save       1:Exit");
-}
-
-static void adjust_update_7seg(void) {
-     904:	0f 93       	push	r16
-     906:	1f 93       	push	r17
-     908:	cf 93       	push	r28
-    // Decimal points enabled on Digit 1 and Digit 3 to separate HH.MM.SS
-    seg7_set_dp_mask((1 << 1) | (1 << 3));
-     90a:	8a e0       	ldi	r24, 0x0A	; 10
-     90c:	0e 94 26 02 	call	0x44c	; 0x44c <seg7_set_dp_mask>
-     910:	0b e0       	ldi	r16, 0x0B	; 11
-     912:	11 e0       	ldi	r17, 0x01	; 1
-
-    for (uint8_t i = 0; i < 6; i++) {
-     914:	c0 e0       	ldi	r28, 0x00	; 0
-        if (i == adjust_pos && !adjust_blink_phase) {
-     916:	80 91 c1 05 	lds	r24, 0x05C1	; 0x8005c1 <adjust_pos>
-     91a:	8c 13       	cpse	r24, r28
-     91c:	05 c0       	rjmp	.+10     	; 0x928 <adjust_update_7seg+0x24>
-     91e:	80 91 0a 01 	lds	r24, 0x010A	; 0x80010a <adjust_blink_phase>
-            seg7_set_digit(i, SEG7_BLANK); // Blink off
-     922:	6f ef       	ldi	r22, 0xFF	; 255
-static void adjust_update_7seg(void) {
-    // Decimal points enabled on Digit 1 and Digit 3 to separate HH.MM.SS
-    seg7_set_dp_mask((1 << 1) | (1 << 3));
-
-    for (uint8_t i = 0; i < 6; i++) {
-        if (i == adjust_pos && !adjust_blink_phase) {
-     924:	88 23       	and	r24, r24
-     926:	11 f0       	breq	.+4      	; 0x92c <adjust_update_7seg+0x28>
-            seg7_set_digit(i, SEG7_BLANK); // Blink off
-        } else {
-            seg7_set_digit(i, adjust_digits[i]);
-     928:	f8 01       	movw	r30, r16
-     92a:	60 81       	ld	r22, Z
-     92c:	8c 2f       	mov	r24, r28
-     92e:	0e 94 d3 01 	call	0x3a6	; 0x3a6 <seg7_set_digit>
-
-static void adjust_update_7seg(void) {
-    // Decimal points enabled on Digit 1 and Digit 3 to separate HH.MM.SS
-    seg7_set_dp_mask((1 << 1) | (1 << 3));
-
-    for (uint8_t i = 0; i < 6; i++) {
-     932:	cf 5f       	subi	r28, 0xFF	; 255
-     934:	0f 5f       	subi	r16, 0xFF	; 255
-     936:	1f 4f       	sbci	r17, 0xFF	; 255
-     938:	c6 30       	cpi	r28, 0x06	; 6
-     93a:	69 f7       	brne	.-38     	; 0x916 <adjust_update_7seg+0x12>
-            seg7_set_digit(i, SEG7_BLANK); // Blink off
-        } else {
-            seg7_set_digit(i, adjust_digits[i]);
-        }
+// Static storage, no heap allocation. This only wires next/prev/parent links.
+static void link_menu(Menu *menu, const char *title, Menu *parent,
+                      MenuItem *items, uint8_t count)
+{
+     a66:	0f 93       	push	r16
+     a68:	fc 01       	movw	r30, r24
+    menu->title = title;
+     a6a:	71 83       	std	Z+1, r23	; 0x01
+     a6c:	60 83       	st	Z, r22
+    menu->first_item = items;
+     a6e:	22 83       	std	Z+2, r18	; 0x02
+     a70:	33 83       	std	Z+3, r19	; 0x03
+    menu->parent_menu = parent;
+     a72:	55 83       	std	Z+5, r21	; 0x05
+     a74:	44 83       	std	Z+4, r20	; 0x04
+    menu->selected = items;
+     a76:	26 83       	std	Z+6, r18	; 0x06
+     a78:	37 83       	std	Z+7, r19	; 0x07
+     a7a:	f9 01       	movw	r30, r18
+     a7c:	81 e0       	ldi	r24, 0x01	; 1
+     a7e:	90 e0       	ldi	r25, 0x00	; 0
+    for (uint8_t i = 0; i < count; i++) {
+        items[i].prev = i ? &items[i - 1] : NULL;
+     a80:	30 e0       	ldi	r19, 0x00	; 0
+     a82:	20 e0       	ldi	r18, 0x00	; 0
+        items[i].next = i + 1 < count ? &items[i + 1] : NULL;
+     a84:	40 2f       	mov	r20, r16
+     a86:	50 e0       	ldi	r21, 0x00	; 0
+     a88:	bf 01       	movw	r22, r30
+    menu->title = title;
+    menu->first_item = items;
+    menu->parent_menu = parent;
+    menu->selected = items;
+    for (uint8_t i = 0; i < count; i++) {
+        items[i].prev = i ? &items[i - 1] : NULL;
+     a8a:	34 83       	std	Z+4, r19	; 0x04
+     a8c:	25 83       	std	Z+5, r18	; 0x05
+     a8e:	9f 01       	movw	r18, r30
+     a90:	24 5f       	subi	r18, 0xF4	; 244
+     a92:	3f 4f       	sbci	r19, 0xFF	; 255
+        items[i].next = i + 1 < count ? &items[i + 1] : NULL;
+     a94:	84 17       	cp	r24, r20
+     a96:	95 07       	cpc	r25, r21
+     a98:	14 f0       	brlt	.+4      	; 0xa9e <link_menu+0x38>
+     a9a:	30 e0       	ldi	r19, 0x00	; 0
+     a9c:	20 e0       	ldi	r18, 0x00	; 0
+     a9e:	33 83       	std	Z+3, r19	; 0x03
+     aa0:	22 83       	std	Z+2, r18	; 0x02
+{
+    menu->title = title;
+    menu->first_item = items;
+    menu->parent_menu = parent;
+    menu->selected = items;
+    for (uint8_t i = 0; i < count; i++) {
+     aa2:	80 17       	cp	r24, r16
+     aa4:	10 f0       	brcs	.+4      	; 0xaaa <link_menu+0x44>
+        items[i].prev = i ? &items[i - 1] : NULL;
+        items[i].next = i + 1 < count ? &items[i + 1] : NULL;
     }
 }
-     93c:	cf 91       	pop	r28
-     93e:	1f 91       	pop	r17
-     940:	0f 91       	pop	r16
-     942:	08 95       	ret
+     aa6:	0f 91       	pop	r16
+     aa8:	08 95       	ret
+     aaa:	01 96       	adiw	r24, 0x01	; 1
+     aac:	3c 96       	adiw	r30, 0x0c	; 12
+{
+    menu->title = title;
+    menu->first_item = items;
+    menu->parent_menu = parent;
+    menu->selected = items;
+    for (uint8_t i = 0; i < count; i++) {
+     aae:	36 2f       	mov	r19, r22
+     ab0:	27 2f       	mov	r18, r23
+     ab2:	ea cf       	rjmp	.-44     	; 0xa88 <link_menu+0x22>
 
-00000944 <action_7seg_adjust>:
-    lcd_set_cursor(3, 0);
-    lcd_send_string("LEFT:Back     1:Exit");
-}
-
-// --- Mode 2: Adjust Clock Function ---
-static void action_7seg_adjust(void) {
-     944:	cf 93       	push	r28
-     946:	df 93       	push	r29
-     948:	00 d0       	rcall	.+0      	; 0x94a <action_7seg_adjust+0x6>
-     94a:	1f 92       	push	r1
-     94c:	cd b7       	in	r28, 0x3d	; 61
-     94e:	de b7       	in	r29, 0x3e	; 62
-    current_state = STATE_ADJUST_CLOCK;
-     950:	83 e0       	ldi	r24, 0x03	; 3
-     952:	90 e0       	ldi	r25, 0x00	; 0
-     954:	90 93 d1 05 	sts	0x05D1, r25	; 0x8005d1 <current_state+0x1>
-     958:	80 93 d0 05 	sts	0x05D0, r24	; 0x8005d0 <current_state>
-    clock_pause(); // Pause clock ticks during manual editing
-     95c:	0e 94 e0 02 	call	0x5c0	; 0x5c0 <clock_pause>
-
-    ClockTime_t ct;
-    clock_get_time(&ct);
-     960:	ce 01       	movw	r24, r28
-     962:	01 96       	adiw	r24, 0x01	; 1
-     964:	0e 94 e6 02 	call	0x5cc	; 0x5cc <clock_get_time>
-    adjust_digits[0] = ct.hours / 10;
-     968:	89 81       	ldd	r24, Y+1	; 0x01
-     96a:	eb e0       	ldi	r30, 0x0B	; 11
-     96c:	f1 e0       	ldi	r31, 0x01	; 1
-     96e:	2a e0       	ldi	r18, 0x0A	; 10
-     970:	62 2f       	mov	r22, r18
-     972:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     976:	80 83       	st	Z, r24
-    adjust_digits[1] = ct.hours % 10;
-     978:	91 83       	std	Z+1, r25	; 0x01
-    adjust_digits[2] = ct.minutes / 10;
-     97a:	8a 81       	ldd	r24, Y+2	; 0x02
-     97c:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     980:	82 83       	std	Z+2, r24	; 0x02
-    adjust_digits[3] = ct.minutes % 10;
-     982:	93 83       	std	Z+3, r25	; 0x03
-    adjust_digits[4] = ct.seconds / 10;
-     984:	8b 81       	ldd	r24, Y+3	; 0x03
-     986:	0e 94 3e 09 	call	0x127c	; 0x127c <__udivmodqi4>
-     98a:	84 83       	std	Z+4, r24	; 0x04
-    adjust_digits[5] = ct.seconds % 10;
-     98c:	95 83       	std	Z+5, r25	; 0x05
-
-    adjust_pos = 0; // Start at Digit 0 (Hours tens)
-     98e:	10 92 c1 05 	sts	0x05C1, r1	; 0x8005c1 <adjust_pos>
-    adjust_blink_phase = 1;
-     992:	81 e0       	ldi	r24, 0x01	; 1
-     994:	80 93 0a 01 	sts	0x010A, r24	; 0x80010a <adjust_blink_phase>
-    adjust_blink_timer = 0;
-     998:	10 92 c0 05 	sts	0x05C0, r1	; 0x8005c0 <adjust_blink_timer>
-
-    lcd_clear();
-     99c:	0e 94 04 01 	call	0x208	; 0x208 <lcd_clear>
-    adjust_draw_lcd();
-     9a0:	0e 94 cd 03 	call	0x79a	; 0x79a <adjust_draw_lcd>
-    adjust_update_7seg();
-     9a4:	0e 94 82 04 	call	0x904	; 0x904 <adjust_update_7seg>
-}
-     9a8:	0f 90       	pop	r0
-     9aa:	0f 90       	pop	r0
-     9ac:	0f 90       	pop	r0
-     9ae:	df 91       	pop	r29
-     9b0:	cf 91       	pop	r28
-     9b2:	08 95       	ret
-
-000009b4 <action_7seg_countup>:
+00000ab4 <menu_init>:
+        items[i].next = i + 1 < count ? &items[i + 1] : NULL;
     }
 }
 
-// --- Mode 3: Count Up ---
-static void action_7seg_countup(void) {
-    count_val++;
-     9b4:	80 91 c2 05 	lds	r24, 0x05C2	; 0x8005c2 <count_val>
-     9b8:	90 91 c3 05 	lds	r25, 0x05C3	; 0x8005c3 <count_val+0x1>
-     9bc:	01 96       	adiw	r24, 0x01	; 1
-     9be:	90 93 c3 05 	sts	0x05C3, r25	; 0x8005c3 <count_val+0x1>
-     9c2:	80 93 c2 05 	sts	0x05C2, r24	; 0x8005c2 <count_val>
-    seg7_set_dp_mask(0x00); // No decimal points in count up
-     9c6:	80 e0       	ldi	r24, 0x00	; 0
-     9c8:	0e 94 26 02 	call	0x44c	; 0x44c <seg7_set_dp_mask>
-    seg7_set_number(count_val);
-     9cc:	60 91 c2 05 	lds	r22, 0x05C2	; 0x8005c2 <count_val>
-     9d0:	70 91 c3 05 	lds	r23, 0x05C3	; 0x8005c3 <count_val+0x1>
-     9d4:	90 e0       	ldi	r25, 0x00	; 0
-     9d6:	80 e0       	ldi	r24, 0x00	; 0
-     9d8:	0e 94 eb 01 	call	0x3d6	; 0x3d6 <seg7_set_number>
-
-    lcd_set_cursor(0, 0);
-     9dc:	60 e0       	ldi	r22, 0x00	; 0
-     9de:	80 e0       	ldi	r24, 0x00	; 0
-     9e0:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== COUNT UP MODE ==");
-     9e4:	86 e0       	ldi	r24, 0x06	; 6
-     9e6:	94 e0       	ldi	r25, 0x04	; 4
-     9e8:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(1, 0);
-     9ec:	60 e0       	ldi	r22, 0x00	; 0
-     9ee:	81 e0       	ldi	r24, 0x01	; 1
-     9f0:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("DISPLAYING ON 7-SEG ");
-     9f4:	8b e1       	ldi	r24, 0x1B	; 27
-     9f6:	94 e0       	ldi	r25, 0x04	; 4
-     9f8:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(2, 0);
-     9fc:	60 e0       	ldi	r22, 0x00	; 0
-     9fe:	82 e0       	ldi	r24, 0x02	; 2
-     a00:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("COUNTER INCREASING  ");
-     a04:	80 e3       	ldi	r24, 0x30	; 48
-     a06:	94 e0       	ldi	r25, 0x04	; 4
-     a08:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     a0c:	60 e0       	ldi	r22, 0x00	; 0
-     a0e:	83 e0       	ldi	r24, 0x03	; 3
-     a10:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     a14:	84 e3       	ldi	r24, 0x34	; 52
-     a16:	93 e0       	ldi	r25, 0x03	; 3
-     a18:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
-
-00000a1c <action_7seg_mode4>:
-}
-
-// --- Mode 4: Test All 8s ---
-static void action_7seg_mode4(void) {
-    seg7_set_dp_mask(0x0A); // DPs on for test
-     a1c:	8a e0       	ldi	r24, 0x0A	; 10
-     a1e:	0e 94 26 02 	call	0x44c	; 0x44c <seg7_set_dp_mask>
-    seg7_set_number(888888);
-     a22:	68 e3       	ldi	r22, 0x38	; 56
-     a24:	70 e9       	ldi	r23, 0x90	; 144
-     a26:	8d e0       	ldi	r24, 0x0D	; 13
-     a28:	90 e0       	ldi	r25, 0x00	; 0
-     a2a:	0e 94 eb 01 	call	0x3d6	; 0x3d6 <seg7_set_number>
-
-    lcd_set_cursor(0, 0);
-     a2e:	60 e0       	ldi	r22, 0x00	; 0
-     a30:	80 e0       	ldi	r24, 0x00	; 0
-     a32:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== 7-SEG MODE 4 ===");
-     a36:	85 e4       	ldi	r24, 0x45	; 69
-     a38:	94 e0       	ldi	r25, 0x04	; 4
-     a3a:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(1, 0);
-     a3e:	60 e0       	ldi	r22, 0x00	; 0
-     a40:	81 e0       	ldi	r24, 0x01	; 1
-     a42:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("ALL DIGITS SET TO 8 ");
-     a46:	8a e5       	ldi	r24, 0x5A	; 90
-     a48:	94 e0       	ldi	r25, 0x04	; 4
-     a4a:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(2, 0);
-     a4e:	60 e0       	ldi	r22, 0x00	; 0
-     a50:	82 e0       	ldi	r24, 0x02	; 2
-     a52:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("TESTING SEGMENTS    ");
-     a56:	8f e6       	ldi	r24, 0x6F	; 111
-     a58:	94 e0       	ldi	r25, 0x04	; 4
-     a5a:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     a5e:	60 e0       	ldi	r22, 0x00	; 0
-     a60:	83 e0       	ldi	r24, 0x03	; 3
-     a62:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     a66:	84 e3       	ldi	r24, 0x34	; 52
-     a68:	93 e0       	ldi	r25, 0x03	; 3
-     a6a:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
-
-00000a6e <action_relay_0_2>:
-}
-
-// --- Relay Actions ---
-static void action_relay_0_2(void) {
-    relay_mode_0_2();
-     a6e:	0e 94 a2 00 	call	0x144	; 0x144 <relay_mode_0_2>
-
-    lcd_set_cursor(0, 0);
-     a72:	60 e0       	ldi	r22, 0x00	; 0
-     a74:	80 e0       	ldi	r24, 0x00	; 0
-     a76:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== RELAYS 0 & 2 ===");
-     a7a:	84 e8       	ldi	r24, 0x84	; 132
-     a7c:	94 e0       	ldi	r25, 0x04	; 4
-     a7e:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(1, 0);
-     a82:	60 e0       	ldi	r22, 0x00	; 0
-     a84:	81 e0       	ldi	r24, 0x01	; 1
-     a86:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("RL0:ON   RL1:OFF    ");
-     a8a:	89 e9       	ldi	r24, 0x99	; 153
-     a8c:	94 e0       	ldi	r25, 0x04	; 4
-     a8e:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(2, 0);
-     a92:	60 e0       	ldi	r22, 0x00	; 0
-     a94:	82 e0       	ldi	r24, 0x02	; 2
-     a96:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("RL2:ON   RL3:OFF    ");
-     a9a:	8e ea       	ldi	r24, 0xAE	; 174
-     a9c:	94 e0       	ldi	r25, 0x04	; 4
-     a9e:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     aa2:	60 e0       	ldi	r22, 0x00	; 0
-     aa4:	83 e0       	ldi	r24, 0x03	; 3
-     aa6:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     aaa:	84 e3       	ldi	r24, 0x34	; 52
-     aac:	93 e0       	ldi	r25, 0x03	; 3
-     aae:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
-
-00000ab2 <action_relay_1_3>:
-}
-
-static void action_relay_1_3(void) {
-    relay_mode_1_3();
-     ab2:	0e 94 a6 00 	call	0x14c	; 0x14c <relay_mode_1_3>
-
-    lcd_set_cursor(0, 0);
-     ab6:	60 e0       	ldi	r22, 0x00	; 0
-     ab8:	80 e0       	ldi	r24, 0x00	; 0
-     aba:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== RELAYS 1 & 3 ===");
-     abe:	83 ec       	ldi	r24, 0xC3	; 195
-     ac0:	94 e0       	ldi	r25, 0x04	; 4
-     ac2:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(1, 0);
-     ac6:	60 e0       	ldi	r22, 0x00	; 0
-     ac8:	81 e0       	ldi	r24, 0x01	; 1
-     aca:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("RL0:OFF  RL1:ON     ");
-     ace:	88 ed       	ldi	r24, 0xD8	; 216
-     ad0:	94 e0       	ldi	r25, 0x04	; 4
-     ad2:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(2, 0);
-     ad6:	60 e0       	ldi	r22, 0x00	; 0
-     ad8:	82 e0       	ldi	r24, 0x02	; 2
-     ada:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("RL2:OFF  RL3:ON     ");
-     ade:	8d ee       	ldi	r24, 0xED	; 237
-     ae0:	94 e0       	ldi	r25, 0x04	; 4
-     ae2:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     ae6:	60 e0       	ldi	r22, 0x00	; 0
-     ae8:	83 e0       	ldi	r24, 0x03	; 3
-     aea:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     aee:	84 e3       	ldi	r24, 0x34	; 52
+void menu_init(void)
+{
+     ab4:	0f 93       	push	r16
+    link_menu(&device_menu, "DEVICES", NULL, device_items, 2);
+     ab6:	02 e0       	ldi	r16, 0x02	; 2
+     ab8:	2c ec       	ldi	r18, 0xCC	; 204
+     aba:	31 e0       	ldi	r19, 0x01	; 1
+     abc:	50 e0       	ldi	r21, 0x00	; 0
+     abe:	40 e0       	ldi	r20, 0x00	; 0
+     ac0:	66 e4       	ldi	r22, 0x46	; 70
+     ac2:	73 e0       	ldi	r23, 0x03	; 3
+     ac4:	8b e0       	ldi	r24, 0x0B	; 11
+     ac6:	94 e0       	ldi	r25, 0x04	; 4
+     ac8:	0e 94 33 05 	call	0xa66	; 0xa66 <link_menu>
+    link_menu(&led_menu, "LED:", &device_menu, led_items, 4);
+     acc:	04 e0       	ldi	r16, 0x04	; 4
+     ace:	2c e9       	ldi	r18, 0x9C	; 156
+     ad0:	31 e0       	ldi	r19, 0x01	; 1
+     ad2:	4b e0       	ldi	r20, 0x0B	; 11
+     ad4:	54 e0       	ldi	r21, 0x04	; 4
+     ad6:	68 eb       	ldi	r22, 0xB8	; 184
+     ad8:	72 e0       	ldi	r23, 0x02	; 2
+     ada:	83 e0       	ldi	r24, 0x03	; 3
+     adc:	94 e0       	ldi	r25, 0x04	; 4
+     ade:	0e 94 33 05 	call	0xa66	; 0xa66 <link_menu>
+    link_menu(&relay_menu, "RELAYS:", &device_menu, relay_items, 4);
+     ae2:	2c e6       	ldi	r18, 0x6C	; 108
+     ae4:	31 e0       	ldi	r19, 0x01	; 1
+     ae6:	4b e0       	ldi	r20, 0x0B	; 11
+     ae8:	54 e0       	ldi	r21, 0x04	; 4
+     aea:	6e e4       	ldi	r22, 0x4E	; 78
+     aec:	73 e0       	ldi	r23, 0x03	; 3
+     aee:	8b ef       	ldi	r24, 0xFB	; 251
      af0:	93 e0       	ldi	r25, 0x03	; 3
-     af2:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
+     af2:	0e 94 33 05 	call	0xa66	; 0xa66 <link_menu>
+    link_menu(&relay_actions[0], "RELAY 1:", &relay_menu, relay_1_items, 2);
+     af6:	02 e0       	ldi	r16, 0x02	; 2
+     af8:	24 e5       	ldi	r18, 0x54	; 84
+     afa:	31 e0       	ldi	r19, 0x01	; 1
+     afc:	4b ef       	ldi	r20, 0xFB	; 251
+     afe:	53 e0       	ldi	r21, 0x03	; 3
+     b00:	66 e5       	ldi	r22, 0x56	; 86
+     b02:	73 e0       	ldi	r23, 0x03	; 3
+     b04:	8b ed       	ldi	r24, 0xDB	; 219
+     b06:	93 e0       	ldi	r25, 0x03	; 3
+     b08:	0e 94 33 05 	call	0xa66	; 0xa66 <link_menu>
+    link_menu(&relay_actions[1], "RELAY 2:", &relay_menu, relay_2_items, 2);
+     b0c:	2c e3       	ldi	r18, 0x3C	; 60
+     b0e:	31 e0       	ldi	r19, 0x01	; 1
+     b10:	4b ef       	ldi	r20, 0xFB	; 251
+     b12:	53 e0       	ldi	r21, 0x03	; 3
+     b14:	6f e5       	ldi	r22, 0x5F	; 95
+     b16:	73 e0       	ldi	r23, 0x03	; 3
+     b18:	83 ee       	ldi	r24, 0xE3	; 227
+     b1a:	93 e0       	ldi	r25, 0x03	; 3
+     b1c:	0e 94 33 05 	call	0xa66	; 0xa66 <link_menu>
+    link_menu(&relay_actions[2], "RELAY 3:", &relay_menu, relay_3_items, 2);
+     b20:	24 e2       	ldi	r18, 0x24	; 36
+     b22:	31 e0       	ldi	r19, 0x01	; 1
+     b24:	4b ef       	ldi	r20, 0xFB	; 251
+     b26:	53 e0       	ldi	r21, 0x03	; 3
+     b28:	68 e6       	ldi	r22, 0x68	; 104
+     b2a:	73 e0       	ldi	r23, 0x03	; 3
+     b2c:	8b ee       	ldi	r24, 0xEB	; 235
+     b2e:	93 e0       	ldi	r25, 0x03	; 3
+     b30:	0e 94 33 05 	call	0xa66	; 0xa66 <link_menu>
+    link_menu(&relay_actions[3], "RELAY 4:", &relay_menu, relay_4_items, 2);
+     b34:	2c e0       	ldi	r18, 0x0C	; 12
+     b36:	31 e0       	ldi	r19, 0x01	; 1
+     b38:	4b ef       	ldi	r20, 0xFB	; 251
+     b3a:	53 e0       	ldi	r21, 0x03	; 3
+     b3c:	61 e7       	ldi	r22, 0x71	; 113
+     b3e:	73 e0       	ldi	r23, 0x03	; 3
+     b40:	83 ef       	ldi	r24, 0xF3	; 243
+     b42:	93 e0       	ldi	r25, 0x03	; 3
+     b44:	0e 94 33 05 	call	0xa66	; 0xa66 <link_menu>
+    current_menu = &device_menu;
+     b48:	8b e0       	ldi	r24, 0x0B	; 11
+     b4a:	94 e0       	ldi	r25, 0x04	; 4
+     b4c:	90 93 da 03 	sts	0x03DA, r25	; 0x8003da <current_menu+0x1>
+     b50:	80 93 d9 03 	sts	0x03D9, r24	; 0x8003d9 <current_menu>
+    active_action = NULL;
+     b54:	10 92 d8 03 	sts	0x03D8, r1	; 0x8003d8 <active_action+0x1>
+     b58:	10 92 d7 03 	sts	0x03D7, r1	; 0x8003d7 <active_action>
+}
+     b5c:	0f 91       	pop	r16
+     b5e:	08 95       	ret
 
-00000af6 <action_relay_all_on>:
+00000b60 <menu_draw>:
+
+void menu_draw(void)
+{
+     b60:	ef 92       	push	r14
+     b62:	ff 92       	push	r15
+     b64:	0f 93       	push	r16
+     b66:	1f 93       	push	r17
+     b68:	cf 93       	push	r28
+     b6a:	df 93       	push	r29
+    if (!current_menu || active_action) return;
+     b6c:	e0 91 d9 03 	lds	r30, 0x03D9	; 0x8003d9 <current_menu>
+     b70:	f0 91 da 03 	lds	r31, 0x03DA	; 0x8003da <current_menu+0x1>
+     b74:	30 97       	sbiw	r30, 0x00	; 0
+     b76:	09 f4       	brne	.+2      	; 0xb7a <menu_draw+0x1a>
+     b78:	57 c0       	rjmp	.+174    	; 0xc28 <menu_draw+0xc8>
+     b7a:	80 91 d7 03 	lds	r24, 0x03D7	; 0x8003d7 <active_action>
+     b7e:	90 91 d8 03 	lds	r25, 0x03D8	; 0x8003d8 <active_action+0x1>
+     b82:	89 2b       	or	r24, r25
+     b84:	09 f0       	breq	.+2      	; 0xb88 <menu_draw+0x28>
+     b86:	50 c0       	rjmp	.+160    	; 0xc28 <menu_draw+0xc8>
+    lcd_write_line(0, current_menu->title);
+     b88:	60 81       	ld	r22, Z
+     b8a:	71 81       	ldd	r23, Z+1	; 0x01
+     b8c:	80 e0       	ldi	r24, 0x00	; 0
+     b8e:	0e 94 71 02 	call	0x4e2	; 0x4e2 <lcd_write_line>
+    // Keep the first three entries visible until selection reaches entry four.
+    MenuItem *first = current_menu->first_item;
+     b92:	a0 91 d9 03 	lds	r26, 0x03D9	; 0x8003d9 <current_menu>
+     b96:	b0 91 da 03 	lds	r27, 0x03DA	; 0x8003da <current_menu+0x1>
+     b9a:	12 96       	adiw	r26, 0x02	; 2
+     b9c:	cd 91       	ld	r28, X+
+     b9e:	dc 91       	ld	r29, X
+     ba0:	13 97       	sbiw	r26, 0x03	; 3
+    uint8_t index = 0;
+    for (MenuItem *item = first; item && item != current_menu->selected; item = item->next)
+     ba2:	fe 01       	movw	r30, r28
+{
+    if (!current_menu || active_action) return;
+    lcd_write_line(0, current_menu->title);
+    // Keep the first three entries visible until selection reaches entry four.
+    MenuItem *first = current_menu->first_item;
+    uint8_t index = 0;
+     ba4:	80 e0       	ldi	r24, 0x00	; 0
+    for (MenuItem *item = first; item && item != current_menu->selected; item = item->next)
+     ba6:	30 97       	sbiw	r30, 0x00	; 0
+     ba8:	41 f0       	breq	.+16     	; 0xbba <menu_draw+0x5a>
+     baa:	16 96       	adiw	r26, 0x06	; 6
+     bac:	2d 91       	ld	r18, X+
+     bae:	3c 91       	ld	r19, X
+     bb0:	17 97       	sbiw	r26, 0x07	; 7
+     bb2:	2e 17       	cp	r18, r30
+     bb4:	3f 07       	cpc	r19, r31
+     bb6:	09 f0       	breq	.+2      	; 0xbba <menu_draw+0x5a>
+     bb8:	3e c0       	rjmp	.+124    	; 0xc36 <menu_draw+0xd6>
+        index++;
+    while (index > 2 && first) {
+     bba:	83 30       	cpi	r24, 0x03	; 3
+     bbc:	18 f0       	brcs	.+6      	; 0xbc4 <menu_draw+0x64>
+     bbe:	20 97       	sbiw	r28, 0x00	; 0
+     bc0:	09 f0       	breq	.+2      	; 0xbc4 <menu_draw+0x64>
+     bc2:	3e c0       	rjmp	.+124    	; 0xc40 <menu_draw+0xe0>
+{
+    if (!current_menu || active_action) return;
+    lcd_write_line(0, current_menu->title);
+    // Keep the first three entries visible until selection reaches entry four.
+    MenuItem *first = current_menu->first_item;
+    uint8_t index = 0;
+     bc4:	11 e0       	ldi	r17, 0x01	; 1
+    while (index > 2 && first) {
+        first = first->next;
+        index--;
+    }
+    for (uint8_t row = 1; row < LCD_ROWS; row++) {
+        lcd_set_cursor(row, 0);
+     bc6:	60 e0       	ldi	r22, 0x00	; 0
+     bc8:	81 2f       	mov	r24, r17
+     bca:	0e 94 e5 01 	call	0x3ca	; 0x3ca <lcd_set_cursor>
+        lcd_send_data(first && first == current_menu->selected ? '>' : ' ');
+     bce:	20 97       	sbiw	r28, 0x00	; 0
+     bd0:	49 f0       	breq	.+18     	; 0xbe4 <menu_draw+0x84>
+     bd2:	e0 91 d9 03 	lds	r30, 0x03D9	; 0x8003d9 <current_menu>
+     bd6:	f0 91 da 03 	lds	r31, 0x03DA	; 0x8003da <current_menu+0x1>
+     bda:	86 81       	ldd	r24, Z+6	; 0x06
+     bdc:	97 81       	ldd	r25, Z+7	; 0x07
+     bde:	8c 17       	cp	r24, r28
+     be0:	9d 07       	cpc	r25, r29
+     be2:	99 f1       	breq	.+102    	; 0xc4a <menu_draw+0xea>
+     be4:	80 e2       	ldi	r24, 0x20	; 32
+     be6:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+        lcd_send_data(' ');
+     bea:	80 e2       	ldi	r24, 0x20	; 32
+     bec:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+        const char *text = first ? first->text : "";
+     bf0:	8f ea       	ldi	r24, 0xAF	; 175
+     bf2:	e8 2e       	mov	r14, r24
+     bf4:	82 e0       	ldi	r24, 0x02	; 2
+     bf6:	f8 2e       	mov	r15, r24
+     bf8:	20 97       	sbiw	r28, 0x00	; 0
+     bfa:	11 f0       	breq	.+4      	; 0xc00 <menu_draw+0xa0>
+     bfc:	e8 80       	ld	r14, Y
+     bfe:	f9 80       	ldd	r15, Y+1	; 0x01
+     c00:	02 e1       	ldi	r16, 0x12	; 18
+        for (uint8_t col = 2; col < LCD_COLUMNS; col++)
+            lcd_send_data(*text ? (uint8_t)*text++ : ' ');
+     c02:	f7 01       	movw	r30, r14
+     c04:	80 81       	ld	r24, Z
+     c06:	88 23       	and	r24, r24
+     c08:	11 f1       	breq	.+68     	; 0xc4e <menu_draw+0xee>
+     c0a:	ff ef       	ldi	r31, 0xFF	; 255
+     c0c:	ef 1a       	sub	r14, r31
+     c0e:	ff 0a       	sbc	r15, r31
+     c10:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+     c14:	01 50       	subi	r16, 0x01	; 1
+    for (uint8_t row = 1; row < LCD_ROWS; row++) {
+        lcd_set_cursor(row, 0);
+        lcd_send_data(first && first == current_menu->selected ? '>' : ' ');
+        lcd_send_data(' ');
+        const char *text = first ? first->text : "";
+        for (uint8_t col = 2; col < LCD_COLUMNS; col++)
+     c16:	a9 f7       	brne	.-22     	; 0xc02 <menu_draw+0xa2>
+            lcd_send_data(*text ? (uint8_t)*text++ : ' ');
+        if (first) first = first->next;
+     c18:	20 97       	sbiw	r28, 0x00	; 0
+     c1a:	19 f0       	breq	.+6      	; 0xc22 <menu_draw+0xc2>
+     c1c:	0a 80       	ldd	r0, Y+2	; 0x02
+     c1e:	db 81       	ldd	r29, Y+3	; 0x03
+     c20:	c0 2d       	mov	r28, r0
+        index++;
+    while (index > 2 && first) {
+        first = first->next;
+        index--;
+    }
+    for (uint8_t row = 1; row < LCD_ROWS; row++) {
+     c22:	1f 5f       	subi	r17, 0xFF	; 255
+     c24:	14 30       	cpi	r17, 0x04	; 4
+     c26:	79 f6       	brne	.-98     	; 0xbc6 <menu_draw+0x66>
+        const char *text = first ? first->text : "";
+        for (uint8_t col = 2; col < LCD_COLUMNS; col++)
+            lcd_send_data(*text ? (uint8_t)*text++ : ' ');
+        if (first) first = first->next;
+    }
+}
+     c28:	df 91       	pop	r29
+     c2a:	cf 91       	pop	r28
+     c2c:	1f 91       	pop	r17
+     c2e:	0f 91       	pop	r16
+     c30:	ff 90       	pop	r15
+     c32:	ef 90       	pop	r14
+     c34:	08 95       	ret
+    lcd_write_line(0, current_menu->title);
+    // Keep the first three entries visible until selection reaches entry four.
+    MenuItem *first = current_menu->first_item;
+    uint8_t index = 0;
+    for (MenuItem *item = first; item && item != current_menu->selected; item = item->next)
+        index++;
+     c36:	8f 5f       	subi	r24, 0xFF	; 255
+    if (!current_menu || active_action) return;
+    lcd_write_line(0, current_menu->title);
+    // Keep the first three entries visible until selection reaches entry four.
+    MenuItem *first = current_menu->first_item;
+    uint8_t index = 0;
+    for (MenuItem *item = first; item && item != current_menu->selected; item = item->next)
+     c38:	02 80       	ldd	r0, Z+2	; 0x02
+     c3a:	f3 81       	ldd	r31, Z+3	; 0x03
+     c3c:	e0 2d       	mov	r30, r0
+     c3e:	b3 cf       	rjmp	.-154    	; 0xba6 <menu_draw+0x46>
+        index++;
+    while (index > 2 && first) {
+        first = first->next;
+     c40:	0a 80       	ldd	r0, Y+2	; 0x02
+     c42:	db 81       	ldd	r29, Y+3	; 0x03
+     c44:	c0 2d       	mov	r28, r0
+        index--;
+     c46:	81 50       	subi	r24, 0x01	; 1
+     c48:	b8 cf       	rjmp	.-144    	; 0xbba <menu_draw+0x5a>
+    }
+    for (uint8_t row = 1; row < LCD_ROWS; row++) {
+        lcd_set_cursor(row, 0);
+        lcd_send_data(first && first == current_menu->selected ? '>' : ' ');
+     c4a:	8e e3       	ldi	r24, 0x3E	; 62
+     c4c:	cc cf       	rjmp	.-104    	; 0xbe6 <menu_draw+0x86>
+        lcd_send_data(' ');
+        const char *text = first ? first->text : "";
+        for (uint8_t col = 2; col < LCD_COLUMNS; col++)
+            lcd_send_data(*text ? (uint8_t)*text++ : ' ');
+     c4e:	80 e2       	ldi	r24, 0x20	; 32
+     c50:	df cf       	rjmp	.-66     	; 0xc10 <menu_draw+0xb0>
+
+00000c52 <menu_up>:
+    }
 }
 
-static void action_relay_all_on(void) {
-    relay_all_on();
-     af6:	0e 94 aa 00 	call	0x154	; 0x154 <relay_all_on>
-
-    lcd_set_cursor(0, 0);
-     afa:	60 e0       	ldi	r22, 0x00	; 0
-     afc:	80 e0       	ldi	r24, 0x00	; 0
-     afe:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== ALL RELAYS ON ==");
-     b02:	82 e0       	ldi	r24, 0x02	; 2
-     b04:	95 e0       	ldi	r25, 0x05	; 5
-     b06:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(1, 0);
-     b0a:	60 e0       	ldi	r22, 0x00	; 0
-     b0c:	81 e0       	ldi	r24, 0x01	; 1
-     b0e:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("RL0:ON   RL1:ON     ");
-     b12:	87 e1       	ldi	r24, 0x17	; 23
-     b14:	95 e0       	ldi	r25, 0x05	; 5
-     b16:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(2, 0);
-     b1a:	60 e0       	ldi	r22, 0x00	; 0
-     b1c:	82 e0       	ldi	r24, 0x02	; 2
-     b1e:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("RL2:ON   RL3:ON     ");
-     b22:	8c e2       	ldi	r24, 0x2C	; 44
-     b24:	95 e0       	ldi	r25, 0x05	; 5
-     b26:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     b2a:	60 e0       	ldi	r22, 0x00	; 0
-     b2c:	83 e0       	ldi	r24, 0x03	; 3
-     b2e:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     b32:	84 e3       	ldi	r24, 0x34	; 52
-     b34:	93 e0       	ldi	r25, 0x03	; 3
-     b36:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
-
-00000b3a <action_relay_all_off>:
+void menu_up(void)
+{
+    if (!current_menu || active_action || !current_menu->selected) return;
+     c52:	e0 91 d9 03 	lds	r30, 0x03D9	; 0x8003d9 <current_menu>
+     c56:	f0 91 da 03 	lds	r31, 0x03DA	; 0x8003da <current_menu+0x1>
+     c5a:	30 97       	sbiw	r30, 0x00	; 0
+     c5c:	99 f0       	breq	.+38     	; 0xc84 <menu_up+0x32>
+     c5e:	80 91 d7 03 	lds	r24, 0x03D7	; 0x8003d7 <active_action>
+     c62:	90 91 d8 03 	lds	r25, 0x03D8	; 0x8003d8 <active_action+0x1>
+     c66:	89 2b       	or	r24, r25
+     c68:	69 f4       	brne	.+26     	; 0xc84 <menu_up+0x32>
+     c6a:	a6 81       	ldd	r26, Z+6	; 0x06
+     c6c:	b7 81       	ldd	r27, Z+7	; 0x07
+     c6e:	10 97       	sbiw	r26, 0x00	; 0
+     c70:	49 f0       	breq	.+18     	; 0xc84 <menu_up+0x32>
+    if (current_menu->selected->prev) {
+     c72:	14 96       	adiw	r26, 0x04	; 4
+     c74:	8d 91       	ld	r24, X+
+     c76:	9c 91       	ld	r25, X
+     c78:	00 97       	sbiw	r24, 0x00	; 0
+     c7a:	21 f0       	breq	.+8      	; 0xc84 <menu_up+0x32>
+        current_menu->selected = current_menu->selected->prev;
+     c7c:	97 83       	std	Z+7, r25	; 0x07
+     c7e:	86 83       	std	Z+6, r24	; 0x06
+        menu_draw();
+     c80:	0c 94 b0 05 	jmp	0xb60	; 0xb60 <menu_draw>
+    }
 }
+     c84:	08 95       	ret
 
-static void action_relay_all_off(void) {
-    relay_all_off();
-     b3a:	0e 94 ae 00 	call	0x15c	; 0x15c <relay_all_off>
+00000c86 <menu_down>:
 
-    lcd_set_cursor(0, 0);
-     b3e:	60 e0       	ldi	r22, 0x00	; 0
-     b40:	80 e0       	ldi	r24, 0x00	; 0
-     b42:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("=== ALL RELAYS OFF =");
-     b46:	81 e4       	ldi	r24, 0x41	; 65
-     b48:	95 e0       	ldi	r25, 0x05	; 5
-     b4a:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(1, 0);
-     b4e:	60 e0       	ldi	r22, 0x00	; 0
-     b50:	81 e0       	ldi	r24, 0x01	; 1
-     b52:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("RL0:OFF  RL1:OFF    ");
-     b56:	86 e5       	ldi	r24, 0x56	; 86
-     b58:	95 e0       	ldi	r25, 0x05	; 5
-     b5a:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(2, 0);
-     b5e:	60 e0       	ldi	r22, 0x00	; 0
-     b60:	82 e0       	ldi	r24, 0x02	; 2
-     b62:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("RL2:OFF  RL3:OFF    ");
-     b66:	8b e6       	ldi	r24, 0x6B	; 107
-     b68:	95 e0       	ldi	r25, 0x05	; 5
-     b6a:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    lcd_set_cursor(3, 0);
-     b6e:	60 e0       	ldi	r22, 0x00	; 0
-     b70:	83 e0       	ldi	r24, 0x03	; 3
-     b72:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    lcd_send_string("LEFT:Back     1:Exit");
-     b76:	84 e3       	ldi	r24, 0x34	; 52
-     b78:	93 e0       	ldi	r25, 0x03	; 3
-     b7a:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
+void menu_down(void)
+{
+    if (!current_menu || active_action || !current_menu->selected) return;
+     c86:	e0 91 d9 03 	lds	r30, 0x03D9	; 0x8003d9 <current_menu>
+     c8a:	f0 91 da 03 	lds	r31, 0x03DA	; 0x8003da <current_menu+0x1>
+     c8e:	30 97       	sbiw	r30, 0x00	; 0
+     c90:	99 f0       	breq	.+38     	; 0xcb8 <menu_down+0x32>
+     c92:	80 91 d7 03 	lds	r24, 0x03D7	; 0x8003d7 <active_action>
+     c96:	90 91 d8 03 	lds	r25, 0x03D8	; 0x8003d8 <active_action+0x1>
+     c9a:	89 2b       	or	r24, r25
+     c9c:	69 f4       	brne	.+26     	; 0xcb8 <menu_down+0x32>
+     c9e:	a6 81       	ldd	r26, Z+6	; 0x06
+     ca0:	b7 81       	ldd	r27, Z+7	; 0x07
+     ca2:	10 97       	sbiw	r26, 0x00	; 0
+     ca4:	49 f0       	breq	.+18     	; 0xcb8 <menu_down+0x32>
+    if (current_menu->selected->next) {
+     ca6:	12 96       	adiw	r26, 0x02	; 2
+     ca8:	8d 91       	ld	r24, X+
+     caa:	9c 91       	ld	r25, X
+     cac:	00 97       	sbiw	r24, 0x00	; 0
+     cae:	21 f0       	breq	.+8      	; 0xcb8 <menu_down+0x32>
+        current_menu->selected = current_menu->selected->next;
+     cb0:	97 83       	std	Z+7, r25	; 0x07
+     cb2:	86 83       	std	Z+6, r24	; 0x06
+        menu_draw();
+     cb4:	0c 94 b0 05 	jmp	0xb60	; 0xb60 <menu_draw>
+    }
+}
+     cb8:	08 95       	ret
 
-00000b7e <menu_init>:
-static uint8_t adjust_blink_timer = 0;
+00000cba <menu_enter>:
 
-// ==========================================
-// 4. INITIALIZATION
-// ==========================================
-void menu_init(void) {
-     b7e:	cf 93       	push	r28
-     b80:	df 93       	push	r29
-    // Wire up Main Menu
-    Main_Item1.next = &Main_Item2; Main_Item1.prev = NULL;
-     b82:	ef e6       	ldi	r30, 0x6F	; 111
-     b84:	f2 e0       	ldi	r31, 0x02	; 2
-     b86:	a2 e5       	ldi	r26, 0x52	; 82
-     b88:	b2 e0       	ldi	r27, 0x02	; 2
-     b8a:	b6 8b       	std	Z+22, r27	; 0x16
-     b8c:	a5 8b       	std	Z+21, r26	; 0x15
-     b8e:	10 8e       	std	Z+24, r1	; 0x18
-     b90:	17 8a       	std	Z+23, r1	; 0x17
-    Main_Item2.next = &Main_Item3; Main_Item2.prev = &Main_Item1;
-     b92:	c5 e3       	ldi	r28, 0x35	; 53
-     b94:	d2 e0       	ldi	r29, 0x02	; 2
-     b96:	56 96       	adiw	r26, 0x16	; 22
-     b98:	dc 93       	st	X, r29
-     b9a:	ce 93       	st	-X, r28
-     b9c:	55 97       	sbiw	r26, 0x15	; 21
-     b9e:	58 96       	adiw	r26, 0x18	; 24
-     ba0:	fc 93       	st	X, r31
-     ba2:	ee 93       	st	-X, r30
-     ba4:	57 97       	sbiw	r26, 0x17	; 23
-    Main_Item3.next = NULL;        Main_Item3.prev = &Main_Item2;
-     ba6:	1e 8a       	std	Y+22, r1	; 0x16
-     ba8:	1d 8a       	std	Y+21, r1	; 0x15
-     baa:	b8 8f       	std	Y+24, r27	; 0x18
-     bac:	af 8b       	std	Y+23, r26	; 0x17
-    MainMenu.first_item = &Main_Item1;
-     bae:	27 ed       	ldi	r18, 0xD7	; 215
-     bb0:	32 e0       	ldi	r19, 0x02	; 2
-     bb2:	d9 01       	movw	r26, r18
-     bb4:	56 96       	adiw	r26, 0x16	; 22
-     bb6:	fc 93       	st	X, r31
-     bb8:	ee 93       	st	-X, r30
-     bba:	55 97       	sbiw	r26, 0x15	; 21
+void menu_enter(void)
+{
+    if (!current_menu || active_action || !current_menu->selected) return;
+     cba:	e0 91 d9 03 	lds	r30, 0x03D9	; 0x8003d9 <current_menu>
+     cbe:	f0 91 da 03 	lds	r31, 0x03DA	; 0x8003da <current_menu+0x1>
+     cc2:	30 97       	sbiw	r30, 0x00	; 0
+     cc4:	61 f1       	breq	.+88     	; 0xd1e <menu_enter+0x64>
+     cc6:	80 91 d7 03 	lds	r24, 0x03D7	; 0x8003d7 <active_action>
+     cca:	90 91 d8 03 	lds	r25, 0x03D8	; 0x8003d8 <active_action+0x1>
+     cce:	89 2b       	or	r24, r25
+     cd0:	31 f5       	brne	.+76     	; 0xd1e <menu_enter+0x64>
+     cd2:	a6 81       	ldd	r26, Z+6	; 0x06
+     cd4:	b7 81       	ldd	r27, Z+7	; 0x07
+     cd6:	10 97       	sbiw	r26, 0x00	; 0
+     cd8:	11 f1       	breq	.+68     	; 0xd1e <menu_enter+0x64>
+    MenuItem *item = current_menu->selected;
+    if (item->child_menu) {
+     cda:	16 96       	adiw	r26, 0x06	; 6
+     cdc:	ed 91       	ld	r30, X+
+     cde:	fc 91       	ld	r31, X
+     ce0:	17 97       	sbiw	r26, 0x07	; 7
+     ce2:	30 97       	sbiw	r30, 0x00	; 0
+     ce4:	89 f0       	breq	.+34     	; 0xd08 <menu_enter+0x4e>
+        current_menu = item->child_menu;
+     ce6:	f0 93 da 03 	sts	0x03DA, r31	; 0x8003da <current_menu+0x1>
+     cea:	e0 93 d9 03 	sts	0x03D9, r30	; 0x8003d9 <current_menu>
+        // Opening a relay channel starts at ON, matching the current interface.
+        // Other menus retain their selection when revisited.
+        if (current_menu->parent_menu == &relay_menu)
+     cee:	84 81       	ldd	r24, Z+4	; 0x04
+     cf0:	95 81       	ldd	r25, Z+5	; 0x05
+     cf2:	8b 5f       	subi	r24, 0xFB	; 251
+     cf4:	93 40       	sbci	r25, 0x03	; 3
+     cf6:	21 f4       	brne	.+8      	; 0xd00 <menu_enter+0x46>
+            current_menu->selected = current_menu->first_item;
+     cf8:	82 81       	ldd	r24, Z+2	; 0x02
+     cfa:	93 81       	ldd	r25, Z+3	; 0x03
+     cfc:	97 83       	std	Z+7, r25	; 0x07
+     cfe:	86 83       	std	Z+6, r24	; 0x06
+        lcd_clear();
+     d00:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+        menu_draw();
+     d04:	0c 94 b0 05 	jmp	0xb60	; 0xb60 <menu_draw>
+    } else if (item->action) {
+     d08:	18 96       	adiw	r26, 0x08	; 8
+     d0a:	ed 91       	ld	r30, X+
+     d0c:	fc 91       	ld	r31, X
+     d0e:	19 97       	sbiw	r26, 0x09	; 9
+     d10:	30 97       	sbiw	r30, 0x00	; 0
+     d12:	29 f0       	breq	.+10     	; 0xd1e <menu_enter+0x64>
+        active_action = item;
+     d14:	b0 93 d8 03 	sts	0x03D8, r27	; 0x8003d8 <active_action+0x1>
+     d18:	a0 93 d7 03 	sts	0x03D7, r26	; 0x8003d7 <active_action>
+        item->action();
+     d1c:	09 94       	ijmp
+    }
+}
+     d1e:	08 95       	ret
 
-    // Wire up 7-SEG Menu (4 items)
-    Seg_Item1.next = &Seg_Item2; Seg_Item1.prev = NULL;
-     bbc:	68 e1       	ldi	r22, 0x18	; 24
-     bbe:	72 e0       	ldi	r23, 0x02	; 2
-     bc0:	8b ef       	ldi	r24, 0xFB	; 251
-     bc2:	91 e0       	ldi	r25, 0x01	; 1
-     bc4:	db 01       	movw	r26, r22
-     bc6:	56 96       	adiw	r26, 0x16	; 22
-     bc8:	9c 93       	st	X, r25
-     bca:	8e 93       	st	-X, r24
-     bcc:	55 97       	sbiw	r26, 0x15	; 21
-     bce:	58 96       	adiw	r26, 0x18	; 24
-     bd0:	1c 92       	st	X, r1
-     bd2:	1e 92       	st	-X, r1
-     bd4:	57 97       	sbiw	r26, 0x17	; 23
-    Seg_Item2.next = &Seg_Item3; Seg_Item2.prev = &Seg_Item1;
-     bd6:	ce ed       	ldi	r28, 0xDE	; 222
-     bd8:	d1 e0       	ldi	r29, 0x01	; 1
-     bda:	dc 01       	movw	r26, r24
-     bdc:	56 96       	adiw	r26, 0x16	; 22
-     bde:	dc 93       	st	X, r29
-     be0:	ce 93       	st	-X, r28
-     be2:	55 97       	sbiw	r26, 0x15	; 21
-     be4:	58 96       	adiw	r26, 0x18	; 24
-     be6:	7c 93       	st	X, r23
-     be8:	6e 93       	st	-X, r22
-     bea:	57 97       	sbiw	r26, 0x17	; 23
-    Seg_Item3.next = &Seg_Item4; Seg_Item3.prev = &Seg_Item2;
-     bec:	41 ec       	ldi	r20, 0xC1	; 193
-     bee:	51 e0       	ldi	r21, 0x01	; 1
-     bf0:	5e 8b       	std	Y+22, r21	; 0x16
-     bf2:	4d 8b       	std	Y+21, r20	; 0x15
-     bf4:	98 8f       	std	Y+24, r25	; 0x18
-     bf6:	8f 8b       	std	Y+23, r24	; 0x17
-    Seg_Item4.next = NULL;       Seg_Item4.prev = &Seg_Item3;
-     bf8:	da 01       	movw	r26, r20
-     bfa:	56 96       	adiw	r26, 0x16	; 22
-     bfc:	1c 92       	st	X, r1
-     bfe:	1e 92       	st	-X, r1
-     c00:	55 97       	sbiw	r26, 0x15	; 21
-     c02:	58 96       	adiw	r26, 0x18	; 24
-     c04:	dc 93       	st	X, r29
-     c06:	ce 93       	st	-X, r28
-     c08:	57 97       	sbiw	r26, 0x17	; 23
-    SegMenu.first_item = &Seg_Item1;
-     c0a:	70 93 d4 02 	sts	0x02D4, r23	; 0x8002d4 <SegMenu+0x16>
-     c0e:	60 93 d3 02 	sts	0x02D3, r22	; 0x8002d3 <SegMenu+0x15>
+00000d20 <menu_back>:
 
-    // Wire up Relay Menu (4 items)
-    Relay_Item1.next = &Relay_Item2; Relay_Item1.prev = NULL;
-     c12:	64 ea       	ldi	r22, 0xA4	; 164
-     c14:	71 e0       	ldi	r23, 0x01	; 1
-     c16:	87 e8       	ldi	r24, 0x87	; 135
-     c18:	91 e0       	ldi	r25, 0x01	; 1
-     c1a:	db 01       	movw	r26, r22
-     c1c:	56 96       	adiw	r26, 0x16	; 22
-     c1e:	9c 93       	st	X, r25
-     c20:	8e 93       	st	-X, r24
-     c22:	55 97       	sbiw	r26, 0x15	; 21
-     c24:	58 96       	adiw	r26, 0x18	; 24
-     c26:	1c 92       	st	X, r1
-     c28:	1e 92       	st	-X, r1
-     c2a:	57 97       	sbiw	r26, 0x17	; 23
-    Relay_Item2.next = &Relay_Item3; Relay_Item2.prev = &Relay_Item1;
-     c2c:	ca e6       	ldi	r28, 0x6A	; 106
-     c2e:	d1 e0       	ldi	r29, 0x01	; 1
-     c30:	dc 01       	movw	r26, r24
-     c32:	56 96       	adiw	r26, 0x16	; 22
-     c34:	dc 93       	st	X, r29
-     c36:	ce 93       	st	-X, r28
-     c38:	55 97       	sbiw	r26, 0x15	; 21
-     c3a:	58 96       	adiw	r26, 0x18	; 24
-     c3c:	7c 93       	st	X, r23
-     c3e:	6e 93       	st	-X, r22
-     c40:	57 97       	sbiw	r26, 0x17	; 23
-    Relay_Item3.next = &Relay_Item4; Relay_Item3.prev = &Relay_Item2;
-     c42:	4d e4       	ldi	r20, 0x4D	; 77
-     c44:	51 e0       	ldi	r21, 0x01	; 1
-     c46:	5e 8b       	std	Y+22, r21	; 0x16
-     c48:	4d 8b       	std	Y+21, r20	; 0x15
-     c4a:	98 8f       	std	Y+24, r25	; 0x18
-     c4c:	8f 8b       	std	Y+23, r24	; 0x17
-    Relay_Item4.next = NULL;         Relay_Item4.prev = &Relay_Item3;
-     c4e:	da 01       	movw	r26, r20
-     c50:	56 96       	adiw	r26, 0x16	; 22
-     c52:	1c 92       	st	X, r1
-     c54:	1e 92       	st	-X, r1
-     c56:	55 97       	sbiw	r26, 0x15	; 21
-     c58:	58 96       	adiw	r26, 0x18	; 24
-     c5a:	dc 93       	st	X, r29
-     c5c:	ce 93       	st	-X, r28
-     c5e:	57 97       	sbiw	r26, 0x17	; 23
-    RelayMenu.first_item = &Relay_Item1;
-     c60:	70 93 bb 02 	sts	0x02BB, r23	; 0x8002bb <RelayMenu+0x16>
-     c64:	60 93 ba 02 	sts	0x02BA, r22	; 0x8002ba <RelayMenu+0x15>
-
-    // Wire up System Menu
-    Sys_Item1.next = &Sys_Item2; Sys_Item1.prev = NULL;
-     c68:	a0 e3       	ldi	r26, 0x30	; 48
-     c6a:	b1 e0       	ldi	r27, 0x01	; 1
-     c6c:	c3 e1       	ldi	r28, 0x13	; 19
-     c6e:	d1 e0       	ldi	r29, 0x01	; 1
-     c70:	56 96       	adiw	r26, 0x16	; 22
-     c72:	dc 93       	st	X, r29
-     c74:	ce 93       	st	-X, r28
-     c76:	55 97       	sbiw	r26, 0x15	; 21
-     c78:	58 96       	adiw	r26, 0x18	; 24
-     c7a:	1c 92       	st	X, r1
-     c7c:	1e 92       	st	-X, r1
-     c7e:	57 97       	sbiw	r26, 0x17	; 23
-    Sys_Item2.next = NULL;       Sys_Item2.prev = &Sys_Item1;
-     c80:	1e 8a       	std	Y+22, r1	; 0x16
-     c82:	1d 8a       	std	Y+21, r1	; 0x15
-     c84:	b8 8f       	std	Y+24, r27	; 0x18
-     c86:	af 8b       	std	Y+23, r26	; 0x17
-    SystemMenu.first_item = &Sys_Item1;
-     c88:	b0 93 a2 02 	sts	0x02A2, r27	; 0x8002a2 <SystemMenu+0x16>
-     c8c:	a0 93 a1 02 	sts	0x02A1, r26	; 0x8002a1 <SystemMenu+0x15>
-
-    // Set initial engine pointers
-    current_menu = &MainMenu;
-     c90:	30 93 cf 05 	sts	0x05CF, r19	; 0x8005cf <current_menu+0x1>
-     c94:	20 93 ce 05 	sts	0x05CE, r18	; 0x8005ce <current_menu>
-    current_item = current_menu->first_item;
-     c98:	f0 93 cd 05 	sts	0x05CD, r31	; 0x8005cd <current_item+0x1>
-     c9c:	e0 93 cc 05 	sts	0x05CC, r30	; 0x8005cc <current_item>
-    top_display_item = current_menu->first_item;
-     ca0:	f0 93 cb 05 	sts	0x05CB, r31	; 0x8005cb <top_display_item+0x1>
-     ca4:	e0 93 ca 05 	sts	0x05CA, r30	; 0x8005ca <top_display_item>
-    cursor_row = 1;
-     ca8:	81 e0       	ldi	r24, 0x01	; 1
-     caa:	80 93 12 01 	sts	0x0112, r24	; 0x800112 <cursor_row>
-    current_state = STATE_WELCOME;
-     cae:	10 92 d1 05 	sts	0x05D1, r1	; 0x8005d1 <current_state+0x1>
-     cb2:	10 92 d0 05 	sts	0x05D0, r1	; 0x8005d0 <current_state>
-    active_action_func = NULL;
-     cb6:	10 92 c9 05 	sts	0x05C9, r1	; 0x8005c9 <active_action_func+0x1>
-     cba:	10 92 c8 05 	sts	0x05C8, r1	; 0x8005c8 <active_action_func>
-    welcome_char_idx = 0;
-     cbe:	10 92 c5 05 	sts	0x05C5, r1	; 0x8005c5 <welcome_char_idx>
-    welcome_timer = 0;
-     cc2:	10 92 c4 05 	sts	0x05C4, r1	; 0x8005c4 <welcome_timer>
-
-    blink_counter = 0;
-     cc6:	10 92 c7 05 	sts	0x05C7, r1	; 0x8005c7 <blink_counter>
-    blink_on = 1;
-     cca:	80 93 11 01 	sts	0x0111, r24	; 0x800111 <blink_on>
-    action_tick = 0;
-     cce:	10 92 c6 05 	sts	0x05C6, r1	; 0x8005c6 <action_tick>
-    count_val = 0;
-     cd2:	10 92 c3 05 	sts	0x05C3, r1	; 0x8005c3 <count_val+0x1>
-     cd6:	10 92 c2 05 	sts	0x05C2, r1	; 0x8005c2 <count_val>
-
-    // Non-blocking start: clear display and let menu_update type smoothly
+uint8_t menu_back(void)
+{
+    if (!current_menu) return 0;
+     d20:	e0 91 d9 03 	lds	r30, 0x03D9	; 0x8003d9 <current_menu>
+     d24:	f0 91 da 03 	lds	r31, 0x03DA	; 0x8003da <current_menu+0x1>
+     d28:	30 97       	sbiw	r30, 0x00	; 0
+     d2a:	c9 f0       	breq	.+50     	; 0xd5e <menu_back+0x3e>
+    if (active_action) active_action = NULL;
+     d2c:	80 91 d7 03 	lds	r24, 0x03D7	; 0x8003d7 <active_action>
+     d30:	90 91 d8 03 	lds	r25, 0x03D8	; 0x8003d8 <active_action+0x1>
+     d34:	89 2b       	or	r24, r25
+     d36:	51 f0       	breq	.+20     	; 0xd4c <menu_back+0x2c>
+     d38:	10 92 d8 03 	sts	0x03D8, r1	; 0x8003d8 <active_action+0x1>
+     d3c:	10 92 d7 03 	sts	0x03D7, r1	; 0x8003d7 <active_action>
+    else if (current_menu->parent_menu) current_menu = current_menu->parent_menu;
+    else return 0;
     lcd_clear();
-}
-     cda:	df 91       	pop	r29
-     cdc:	cf 91       	pop	r28
-    blink_on = 1;
-    action_tick = 0;
-    count_val = 0;
+     d40:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+    menu_draw();
+     d44:	0e 94 b0 05 	call	0xb60	; 0xb60 <menu_draw>
+    return 1;
+     d48:	81 e0       	ldi	r24, 0x01	; 1
+     d4a:	08 95       	ret
 
-    // Non-blocking start: clear display and let menu_update type smoothly
+uint8_t menu_back(void)
+{
+    if (!current_menu) return 0;
+    if (active_action) active_action = NULL;
+    else if (current_menu->parent_menu) current_menu = current_menu->parent_menu;
+     d4c:	84 81       	ldd	r24, Z+4	; 0x04
+     d4e:	95 81       	ldd	r25, Z+5	; 0x05
+     d50:	00 97       	sbiw	r24, 0x00	; 0
+     d52:	29 f0       	breq	.+10     	; 0xd5e <menu_back+0x3e>
+     d54:	90 93 da 03 	sts	0x03DA, r25	; 0x8003da <current_menu+0x1>
+     d58:	80 93 d9 03 	sts	0x03D9, r24	; 0x8003d9 <current_menu>
+     d5c:	f1 cf       	rjmp	.-30     	; 0xd40 <menu_back+0x20>
+    }
+}
+
+uint8_t menu_back(void)
+{
+    if (!current_menu) return 0;
+     d5e:	80 e0       	ldi	r24, 0x00	; 0
+    else if (current_menu->parent_menu) current_menu = current_menu->parent_menu;
+    else return 0;
     lcd_clear();
-     cde:	0c 94 04 01 	jmp	0x208	; 0x208 <lcd_clear>
+    menu_draw();
+    return 1;
+}
+     d60:	08 95       	ret
 
-00000ce2 <menu_draw>:
+00000d62 <menu_action_active>:
+
+uint8_t menu_action_active(void)
+{
+    return active_action != NULL;
+     d62:	81 e0       	ldi	r24, 0x01	; 1
+     d64:	20 91 d7 03 	lds	r18, 0x03D7	; 0x8003d7 <active_action>
+     d68:	30 91 d8 03 	lds	r19, 0x03D8	; 0x8003d8 <active_action+0x1>
+     d6c:	23 2b       	or	r18, r19
+     d6e:	09 f4       	brne	.+2      	; 0xd72 <menu_action_active+0x10>
+     d70:	80 e0       	ldi	r24, 0x00	; 0
+}
+     d72:	08 95       	ret
+
+00000d74 <menu_action_input>:
+
+void menu_action_input(uint8_t pressed)
+{
+    if (active_action && active_action->input) active_action->input(pressed);
+     d74:	e0 91 d7 03 	lds	r30, 0x03D7	; 0x8003d7 <active_action>
+     d78:	f0 91 d8 03 	lds	r31, 0x03D8	; 0x8003d8 <active_action+0x1>
+     d7c:	30 97       	sbiw	r30, 0x00	; 0
+     d7e:	31 f0       	breq	.+12     	; 0xd8c <menu_action_input+0x18>
+     d80:	02 84       	ldd	r0, Z+10	; 0x0a
+     d82:	f3 85       	ldd	r31, Z+11	; 0x0b
+     d84:	e0 2d       	mov	r30, r0
+     d86:	30 97       	sbiw	r30, 0x00	; 0
+     d88:	09 f0       	breq	.+2      	; 0xd8c <menu_action_input+0x18>
+     d8a:	09 94       	ijmp
+}
+     d8c:	08 95       	ret
+
+00000d8e <alarm_load_step_locked>:
+static volatile uint8_t buzzer_running;
+static volatile uint16_t buzzer_settle_ticks;
+static volatile uint8_t alarm_step;
+static volatile uint16_t alarm_cycles;
+static void alarm_load_step_locked(void) {
+    OCR2 = alarm_pattern[alarm_step].compare;
+     d8e:	e0 91 15 04 	lds	r30, 0x0415	; 0x800415 <alarm_step>
+     d92:	84 e0       	ldi	r24, 0x04	; 4
+     d94:	e8 9f       	mul	r30, r24
+     d96:	f0 01       	movw	r30, r0
+     d98:	11 24       	eor	r1, r1
+     d9a:	eb 5d       	subi	r30, 0xDB	; 219
+     d9c:	fd 4f       	sbci	r31, 0xFD	; 253
+     d9e:	80 81       	ld	r24, Z
+     da0:	83 bd       	out	0x23, r24	; 35
+    TCNT2 = 0; // A smaller OCR2 must not miss its next compare.
+     da2:	14 bc       	out	0x24, r1	; 36
+    alarm_cycles = alarm_pattern[alarm_step].cycles;
+     da4:	e0 91 15 04 	lds	r30, 0x0415	; 0x800415 <alarm_step>
+     da8:	84 e0       	ldi	r24, 0x04	; 4
+     daa:	e8 9f       	mul	r30, r24
+     dac:	f0 01       	movw	r30, r0
+     dae:	11 24       	eor	r1, r1
+     db0:	eb 5d       	subi	r30, 0xDB	; 219
+     db2:	fd 4f       	sbci	r31, 0xFD	; 253
+     db4:	81 81       	ldd	r24, Z+1	; 0x01
+     db6:	92 81       	ldd	r25, Z+2	; 0x02
+     db8:	90 93 14 04 	sts	0x0414, r25	; 0x800414 <alarm_cycles+0x1>
+     dbc:	80 93 13 04 	sts	0x0413, r24	; 0x800413 <alarm_cycles>
+    output_state |= BUZZER_BIT; // Active-low module: HIGH is quiet.
+     dc0:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+     dc4:	80 61       	ori	r24, 0x10	; 16
+     dc6:	80 93 19 04 	sts	0x0419, r24	; 0x800419 <output_state>
+}
+     dca:	08 95       	ret
+
+00000dcc <buzzer_stop_locked>:
+static void buzzer_stop_locked(void) {
+    TIMSK &= ~(1 << OCIE2);
+     dcc:	87 b7       	in	r24, 0x37	; 55
+     dce:	8f 77       	andi	r24, 0x7F	; 127
+     dd0:	87 bf       	out	0x37, r24	; 55
+    TCCR2 = (1 << WGM21);
+     dd2:	88 e0       	ldi	r24, 0x08	; 8
+     dd4:	85 bd       	out	0x25, r24	; 37
+    TIFR = (1 << OCF2);
+     dd6:	80 e8       	ldi	r24, 0x80	; 128
+     dd8:	86 bf       	out	0x36, r24	; 54
+    buzzer_running = 0;
+     dda:	10 92 18 04 	sts	0x0418, r1	; 0x800418 <buzzer_running>
+    buzzer_settle_ticks = 0;
+     dde:	10 92 17 04 	sts	0x0417, r1	; 0x800417 <buzzer_settle_ticks+0x1>
+     de2:	10 92 16 04 	sts	0x0416, r1	; 0x800416 <buzzer_settle_ticks>
+    alarm_step = 0;
+     de6:	10 92 15 04 	sts	0x0415, r1	; 0x800415 <alarm_step>
+    alarm_cycles = 0;
+     dea:	10 92 14 04 	sts	0x0414, r1	; 0x800414 <alarm_cycles+0x1>
+     dee:	10 92 13 04 	sts	0x0413, r1	; 0x800413 <alarm_cycles>
+    // Relay removes VCC: keep I/O LOW to avoid backpowering the module.
+    output_state &= (uint8_t)~BUZZER_BIT;
+     df2:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+     df6:	8f 7e       	andi	r24, 0xEF	; 239
+     df8:	80 93 19 04 	sts	0x0419, r24	; 0x800419 <output_state>
+}
+     dfc:	08 95       	ret
+
+00000dfe <relay_apply_locked>:
+    TIMSK |= (1 << OCIE2);
+    // Timer2 /64; Q4 is the external latch output.
+    TCCR2 = (1 << WGM21) | (1 << CS21) | (1 << CS20);
+}
+static void relay_apply_locked(uint8_t state) {
+    uint8_t previous = (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+     dfe:	20 91 19 04 	lds	r18, 0x0419	; 0x800419 <output_state>
+    uint8_t next = state & RELAY_MASK;
+    output_state = (output_state & (uint8_t)~RELAY_MASK)
+     e02:	90 91 19 04 	lds	r25, 0x0419	; 0x800419 <output_state>
+     e06:	90 7f       	andi	r25, 0xF0	; 240
+    // Timer2 /64; Q4 is the external latch output.
+    TCCR2 = (1 << WGM21) | (1 << CS21) | (1 << CS20);
+}
+static void relay_apply_locked(uint8_t state) {
+    uint8_t previous = (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+    uint8_t next = state & RELAY_MASK;
+     e08:	38 2f       	mov	r19, r24
+     e0a:	3f 70       	andi	r19, 0x0F	; 15
+    output_state = (output_state & (uint8_t)~RELAY_MASK)
+                 | ((next ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK);
+     e0c:	93 2b       	or	r25, r19
+    TCCR2 = (1 << WGM21) | (1 << CS21) | (1 << CS20);
+}
+static void relay_apply_locked(uint8_t state) {
+    uint8_t previous = (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+    uint8_t next = state & RELAY_MASK;
+    output_state = (output_state & (uint8_t)~RELAY_MASK)
+     e0e:	90 93 19 04 	sts	0x0419, r25	; 0x800419 <output_state>
+                 | ((next ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK);
+    if (!(next & RELAY_0_BIT)) {
+     e12:	80 fd       	sbrc	r24, 0
+     e14:	07 c0       	rjmp	.+14     	; 0xe24 <relay_apply_locked+0x26>
+        buzzer_stop_locked();
+     e16:	0e 94 e6 06 	call	0xdcc	; 0xdcc <buzzer_stop_locked>
+    } else if (!(previous & RELAY_0_BIT)) {
+        // Start the alarm after approximately 20 ms for contact/power settling.
+        buzzer_start_locked();
+    }
+    RELAYS = output_state;
+     e1a:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+     e1e:	80 93 05 11 	sts	0x1105, r24	; 0x801105 <__bss_end+0xce7>
+}
+     e22:	08 95       	ret
+    uint8_t next = state & RELAY_MASK;
+    output_state = (output_state & (uint8_t)~RELAY_MASK)
+                 | ((next ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK);
+    if (!(next & RELAY_0_BIT)) {
+        buzzer_stop_locked();
+    } else if (!(previous & RELAY_0_BIT)) {
+     e24:	20 fd       	sbrc	r18, 0
+     e26:	f9 cf       	rjmp	.-14     	; 0xe1a <relay_apply_locked+0x1c>
+    alarm_cycles = 0;
+    // Relay removes VCC: keep I/O LOW to avoid backpowering the module.
+    output_state &= (uint8_t)~BUZZER_BIT;
+}
+static void buzzer_start_locked(void) {
+    buzzer_running = 0;
+     e28:	10 92 18 04 	sts	0x0418, r1	; 0x800418 <buzzer_running>
+    buzzer_settle_ticks = BUZZER_SETTLE_TICKS;
+     e2c:	84 e1       	ldi	r24, 0x14	; 20
+     e2e:	90 e0       	ldi	r25, 0x00	; 0
+     e30:	90 93 17 04 	sts	0x0417, r25	; 0x800417 <buzzer_settle_ticks+0x1>
+     e34:	80 93 16 04 	sts	0x0416, r24	; 0x800416 <buzzer_settle_ticks>
+    alarm_step = 0;
+     e38:	10 92 15 04 	sts	0x0415, r1	; 0x800415 <alarm_step>
+    output_state &= (uint8_t)~BUZZER_BIT;
+     e3c:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+     e40:	8f 7e       	andi	r24, 0xEF	; 239
+     e42:	80 93 19 04 	sts	0x0419, r24	; 0x800419 <output_state>
+    TCNT2 = 0;
+     e46:	14 bc       	out	0x24, r1	; 36
+    OCR2 = REST_COUNTS - 1;
+     e48:	89 ef       	ldi	r24, 0xF9	; 249
+     e4a:	83 bd       	out	0x23, r24	; 35
+    TIFR = (1 << OCF2);
+     e4c:	80 e8       	ldi	r24, 0x80	; 128
+     e4e:	86 bf       	out	0x36, r24	; 54
+    TIMSK |= (1 << OCIE2);
+     e50:	87 b7       	in	r24, 0x37	; 55
+     e52:	80 68       	ori	r24, 0x80	; 128
+     e54:	87 bf       	out	0x37, r24	; 55
+    // Timer2 /64; Q4 is the external latch output.
+    TCCR2 = (1 << WGM21) | (1 << CS21) | (1 << CS20);
+     e56:	8b e0       	ldi	r24, 0x0B	; 11
+     e58:	85 bd       	out	0x25, r24	; 37
+     e5a:	df cf       	rjmp	.-66     	; 0xe1a <relay_apply_locked+0x1c>
+
+00000e5c <relay_init>:
+        buzzer_start_locked();
+    }
+    RELAYS = output_state;
 }
 
-// ==========================================
-// 5. SCREEN RENDERING (20x4 Viewport)
-// ==========================================
-void menu_draw(void) {
-     ce2:	ef 92       	push	r14
-     ce4:	ff 92       	push	r15
-     ce6:	0f 93       	push	r16
-     ce8:	1f 93       	push	r17
-     cea:	cf 93       	push	r28
-     cec:	df 93       	push	r29
-     cee:	cd b7       	in	r28, 0x3d	; 61
-     cf0:	de b7       	in	r29, 0x3e	; 62
-     cf2:	65 97       	sbiw	r28, 0x15	; 21
-     cf4:	0f b6       	in	r0, 0x3f	; 63
-     cf6:	f8 94       	cli
-     cf8:	de bf       	out	0x3e, r29	; 62
-     cfa:	0f be       	out	0x3f, r0	; 63
-     cfc:	cd bf       	out	0x3d, r28	; 61
-    // Row 0: Title (Blinking if root menu, or category title if child)
-    lcd_set_cursor(0, 0);
-     cfe:	60 e0       	ldi	r22, 0x00	; 0
-     d00:	80 e0       	ldi	r24, 0x00	; 0
-     d02:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    if (current_menu == &MainMenu && !blink_on) {
-     d06:	e0 91 ce 05 	lds	r30, 0x05CE	; 0x8005ce <current_menu>
-     d0a:	f0 91 cf 05 	lds	r31, 0x05CF	; 0x8005cf <current_menu+0x1>
-     d0e:	82 e0       	ldi	r24, 0x02	; 2
-     d10:	e7 3d       	cpi	r30, 0xD7	; 215
-     d12:	f8 07       	cpc	r31, r24
-     d14:	69 f5       	brne	.+90     	; 0xd70 <menu_draw+0x8e>
-     d16:	80 91 11 01 	lds	r24, 0x0111	; 0x800111 <blink_on>
-     d1a:	81 11       	cpse	r24, r1
-     d1c:	29 c0       	rjmp	.+82     	; 0xd70 <menu_draw+0x8e>
-        lcd_send_string("                    ");
-     d1e:	80 e8       	ldi	r24, 0x80	; 128
-     d20:	95 e0       	ldi	r25, 0x05	; 5
-        uint8_t len = 0;
-        const char *p = current_menu->title;
-        while (*p && len < 20) buf[len++] = *p++;
-        while (len < 20) buf[len++] = ' ';
-        buf[20] = '\0';
-        lcd_send_string(buf);
-     d22:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-    }
-
-    // Rows 1 to 3: Display 3 items from top_display_item with '>' cursor
-    MenuItem *temp = top_display_item;
-     d26:	e0 90 ca 05 	lds	r14, 0x05CA	; 0x8005ca <top_display_item>
-     d2a:	f0 90 cb 05 	lds	r15, 0x05CB	; 0x8005cb <top_display_item+0x1>
-    for (uint8_t r = 1; r <= 3; r++) {
-     d2e:	11 e0       	ldi	r17, 0x01	; 1
-            lcd_send_data((r == cursor_row) ? '>' : ' ');
-            char buf[20];
-            uint8_t len = 0;
-            const char *p = temp->text;
-            while (*p && len < 19) buf[len++] = *p++;
-            while (len < 19) buf[len++] = ' ';
-     d30:	00 e2       	ldi	r16, 0x20	; 32
-    }
-
-    // Rows 1 to 3: Display 3 items from top_display_item with '>' cursor
-    MenuItem *temp = top_display_item;
-    for (uint8_t r = 1; r <= 3; r++) {
-        lcd_set_cursor(r, 0);
-     d32:	60 e0       	ldi	r22, 0x00	; 0
-     d34:	81 2f       	mov	r24, r17
-     d36:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-        if (temp != NULL) {
-     d3a:	e1 14       	cp	r14, r1
-     d3c:	f1 04       	cpc	r15, r1
-     d3e:	09 f4       	brne	.+2      	; 0xd42 <menu_draw+0x60>
-     d40:	4e c0       	rjmp	.+156    	; 0xdde <menu_draw+0xfc>
-            lcd_send_data((r == cursor_row) ? '>' : ' ');
-     d42:	80 91 12 01 	lds	r24, 0x0112	; 0x800112 <cursor_row>
-     d46:	81 17       	cp	r24, r17
-     d48:	59 f1       	breq	.+86     	; 0xda0 <menu_draw+0xbe>
-     d4a:	80 e2       	ldi	r24, 0x20	; 32
-     d4c:	0e 94 e6 00 	call	0x1cc	; 0x1cc <lcd_send_data>
-     d50:	d7 01       	movw	r26, r14
-     d52:	fe 01       	movw	r30, r28
-     d54:	31 96       	adiw	r30, 0x01	; 1
-            char buf[20];
-            uint8_t len = 0;
-     d56:	90 e0       	ldi	r25, 0x00	; 0
-     d58:	9f 01       	movw	r18, r30
-            const char *p = temp->text;
-            while (*p && len < 19) buf[len++] = *p++;
-     d5a:	8d 91       	ld	r24, X+
-     d5c:	81 11       	cpse	r24, r1
-     d5e:	25 c0       	rjmp	.+74     	; 0xdaa <menu_draw+0xc8>
-     d60:	f9 01       	movw	r30, r18
-     d62:	e9 0f       	add	r30, r25
-     d64:	f1 1d       	adc	r31, r1
-            while (len < 19) buf[len++] = ' ';
-     d66:	93 31       	cpi	r25, 0x13	; 19
-     d68:	11 f1       	breq	.+68     	; 0xdae <menu_draw+0xcc>
-     d6a:	9f 5f       	subi	r25, 0xFF	; 255
-     d6c:	01 93       	st	Z+, r16
-     d6e:	fb cf       	rjmp	.-10     	; 0xd66 <menu_draw+0x84>
-     d70:	de 01       	movw	r26, r28
-     d72:	11 96       	adiw	r26, 0x01	; 1
-    lcd_set_cursor(0, 0);
-    if (current_menu == &MainMenu && !blink_on) {
-        lcd_send_string("                    ");
-    } else {
-        char buf[21];
-        uint8_t len = 0;
-     d74:	90 e0       	ldi	r25, 0x00	; 0
-     d76:	9d 01       	movw	r18, r26
-        const char *p = current_menu->title;
-        while (*p && len < 20) buf[len++] = *p++;
-     d78:	81 91       	ld	r24, Z+
-     d7a:	81 11       	cpse	r24, r1
-     d7c:	0c c0       	rjmp	.+24     	; 0xd96 <menu_draw+0xb4>
-     d7e:	f9 01       	movw	r30, r18
-     d80:	e9 0f       	add	r30, r25
-     d82:	f1 1d       	adc	r31, r1
-        while (len < 20) buf[len++] = ' ';
-     d84:	80 e2       	ldi	r24, 0x20	; 32
-     d86:	94 31       	cpi	r25, 0x14	; 20
-     d88:	41 f0       	breq	.+16     	; 0xd9a <menu_draw+0xb8>
-     d8a:	9f 5f       	subi	r25, 0xFF	; 255
-     d8c:	81 93       	st	Z+, r24
-     d8e:	fb cf       	rjmp	.-10     	; 0xd86 <menu_draw+0xa4>
-        lcd_send_string("                    ");
-    } else {
-        char buf[21];
-        uint8_t len = 0;
-        const char *p = current_menu->title;
-        while (*p && len < 20) buf[len++] = *p++;
-     d90:	9f 5f       	subi	r25, 0xFF	; 255
-     d92:	8d 93       	st	X+, r24
-     d94:	f1 cf       	rjmp	.-30     	; 0xd78 <menu_draw+0x96>
-     d96:	94 31       	cpi	r25, 0x14	; 20
-     d98:	d9 f7       	brne	.-10     	; 0xd90 <menu_draw+0xae>
-        while (len < 20) buf[len++] = ' ';
-        buf[20] = '\0';
-     d9a:	1d 8a       	std	Y+21, r1	; 0x15
-        lcd_send_string(buf);
-     d9c:	c9 01       	movw	r24, r18
-     d9e:	c1 cf       	rjmp	.-126    	; 0xd22 <menu_draw+0x40>
-    // Rows 1 to 3: Display 3 items from top_display_item with '>' cursor
-    MenuItem *temp = top_display_item;
-    for (uint8_t r = 1; r <= 3; r++) {
-        lcd_set_cursor(r, 0);
-        if (temp != NULL) {
-            lcd_send_data((r == cursor_row) ? '>' : ' ');
-     da0:	8e e3       	ldi	r24, 0x3E	; 62
-     da2:	d4 cf       	rjmp	.-88     	; 0xd4c <menu_draw+0x6a>
-            char buf[20];
-            uint8_t len = 0;
-            const char *p = temp->text;
-            while (*p && len < 19) buf[len++] = *p++;
-     da4:	9f 5f       	subi	r25, 0xFF	; 255
-     da6:	81 93       	st	Z+, r24
-     da8:	d8 cf       	rjmp	.-80     	; 0xd5a <menu_draw+0x78>
-     daa:	93 31       	cpi	r25, 0x13	; 19
-     dac:	d9 f7       	brne	.-10     	; 0xda4 <menu_draw+0xc2>
-            while (len < 19) buf[len++] = ' ';
-            buf[19] = '\0';
-     dae:	1c 8a       	std	Y+20, r1	; 0x14
-            lcd_send_string(buf);
-     db0:	c9 01       	movw	r24, r18
-     db2:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-            temp = temp->next;
-     db6:	f7 01       	movw	r30, r14
-     db8:	e5 88       	ldd	r14, Z+21	; 0x15
-     dba:	f6 88       	ldd	r15, Z+22	; 0x16
-        lcd_send_string(buf);
-    }
-
-    // Rows 1 to 3: Display 3 items from top_display_item with '>' cursor
-    MenuItem *temp = top_display_item;
-    for (uint8_t r = 1; r <= 3; r++) {
-     dbc:	1f 5f       	subi	r17, 0xFF	; 255
-     dbe:	14 30       	cpi	r17, 0x04	; 4
-     dc0:	09 f0       	breq	.+2      	; 0xdc4 <menu_draw+0xe2>
-     dc2:	b7 cf       	rjmp	.-146    	; 0xd32 <menu_draw+0x50>
-            temp = temp->next;
-        } else {
-            lcd_send_string("                    ");
-        }
-    }
-}
-     dc4:	65 96       	adiw	r28, 0x15	; 21
-     dc6:	0f b6       	in	r0, 0x3f	; 63
-     dc8:	f8 94       	cli
-     dca:	de bf       	out	0x3e, r29	; 62
-     dcc:	0f be       	out	0x3f, r0	; 63
-     dce:	cd bf       	out	0x3d, r28	; 61
-     dd0:	df 91       	pop	r29
-     dd2:	cf 91       	pop	r28
-     dd4:	1f 91       	pop	r17
-     dd6:	0f 91       	pop	r16
-     dd8:	ff 90       	pop	r15
-     dda:	ef 90       	pop	r14
-     ddc:	08 95       	ret
-            while (len < 19) buf[len++] = ' ';
-            buf[19] = '\0';
-            lcd_send_string(buf);
-            temp = temp->next;
-        } else {
-            lcd_send_string("                    ");
-     dde:	80 e8       	ldi	r24, 0x80	; 128
-     de0:	95 e0       	ldi	r25, 0x05	; 5
-     de2:	0e 94 7e 01 	call	0x2fc	; 0x2fc <lcd_send_string>
-     de6:	ea cf       	rjmp	.-44     	; 0xdbc <menu_draw+0xda>
-
-00000de8 <menu_down>:
-
-// ==========================================
-// 6. NAVIGATION FUNCTIONS
-// ==========================================
-void menu_down(void) {
-    if (current_item && current_item->next != NULL) {
-     de8:	e0 91 cc 05 	lds	r30, 0x05CC	; 0x8005cc <current_item>
-     dec:	f0 91 cd 05 	lds	r31, 0x05CD	; 0x8005cd <current_item+0x1>
-     df0:	30 97       	sbiw	r30, 0x00	; 0
-     df2:	e1 f0       	breq	.+56     	; 0xe2c <menu_down+0x44>
-     df4:	85 89       	ldd	r24, Z+21	; 0x15
-     df6:	96 89       	ldd	r25, Z+22	; 0x16
-     df8:	00 97       	sbiw	r24, 0x00	; 0
-     dfa:	c1 f0       	breq	.+48     	; 0xe2c <menu_down+0x44>
-        current_item = current_item->next;
-     dfc:	90 93 cd 05 	sts	0x05CD, r25	; 0x8005cd <current_item+0x1>
-     e00:	80 93 cc 05 	sts	0x05CC, r24	; 0x8005cc <current_item>
-        if (cursor_row < 3) {
-     e04:	80 91 12 01 	lds	r24, 0x0112	; 0x800112 <cursor_row>
-     e08:	83 30       	cpi	r24, 0x03	; 3
-     e0a:	28 f4       	brcc	.+10     	; 0xe16 <menu_down+0x2e>
-            cursor_row++;
-     e0c:	8f 5f       	subi	r24, 0xFF	; 255
-     e0e:	80 93 12 01 	sts	0x0112, r24	; 0x800112 <cursor_row>
-        } else {
-            top_display_item = top_display_item->next;
-        }
-        menu_draw();
-     e12:	0c 94 71 06 	jmp	0xce2	; 0xce2 <menu_draw>
-    if (current_item && current_item->next != NULL) {
-        current_item = current_item->next;
-        if (cursor_row < 3) {
-            cursor_row++;
-        } else {
-            top_display_item = top_display_item->next;
-     e16:	e0 91 ca 05 	lds	r30, 0x05CA	; 0x8005ca <top_display_item>
-     e1a:	f0 91 cb 05 	lds	r31, 0x05CB	; 0x8005cb <top_display_item+0x1>
-     e1e:	85 89       	ldd	r24, Z+21	; 0x15
-     e20:	96 89       	ldd	r25, Z+22	; 0x16
-     e22:	90 93 cb 05 	sts	0x05CB, r25	; 0x8005cb <top_display_item+0x1>
-     e26:	80 93 ca 05 	sts	0x05CA, r24	; 0x8005ca <top_display_item>
-     e2a:	f3 cf       	rjmp	.-26     	; 0xe12 <menu_down+0x2a>
-        }
-        menu_draw();
-    }
-}
-     e2c:	08 95       	ret
-
-00000e2e <menu_up>:
-
-void menu_up(void) {
-    if (current_item && current_item->prev != NULL) {
-     e2e:	e0 91 cc 05 	lds	r30, 0x05CC	; 0x8005cc <current_item>
-     e32:	f0 91 cd 05 	lds	r31, 0x05CD	; 0x8005cd <current_item+0x1>
-     e36:	30 97       	sbiw	r30, 0x00	; 0
-     e38:	e1 f0       	breq	.+56     	; 0xe72 <menu_up+0x44>
-     e3a:	87 89       	ldd	r24, Z+23	; 0x17
-     e3c:	90 8d       	ldd	r25, Z+24	; 0x18
-     e3e:	00 97       	sbiw	r24, 0x00	; 0
-     e40:	c1 f0       	breq	.+48     	; 0xe72 <menu_up+0x44>
-        current_item = current_item->prev;
-     e42:	90 93 cd 05 	sts	0x05CD, r25	; 0x8005cd <current_item+0x1>
-     e46:	80 93 cc 05 	sts	0x05CC, r24	; 0x8005cc <current_item>
-        if (cursor_row > 1) {
-     e4a:	80 91 12 01 	lds	r24, 0x0112	; 0x800112 <cursor_row>
-     e4e:	82 30       	cpi	r24, 0x02	; 2
-     e50:	28 f0       	brcs	.+10     	; 0xe5c <menu_up+0x2e>
-            cursor_row--;
-     e52:	81 50       	subi	r24, 0x01	; 1
-     e54:	80 93 12 01 	sts	0x0112, r24	; 0x800112 <cursor_row>
-        } else {
-            top_display_item = top_display_item->prev;
-        }
-        menu_draw();
-     e58:	0c 94 71 06 	jmp	0xce2	; 0xce2 <menu_draw>
-    if (current_item && current_item->prev != NULL) {
-        current_item = current_item->prev;
-        if (cursor_row > 1) {
-            cursor_row--;
-        } else {
-            top_display_item = top_display_item->prev;
-     e5c:	e0 91 ca 05 	lds	r30, 0x05CA	; 0x8005ca <top_display_item>
-     e60:	f0 91 cb 05 	lds	r31, 0x05CB	; 0x8005cb <top_display_item+0x1>
-     e64:	87 89       	ldd	r24, Z+23	; 0x17
-     e66:	90 8d       	ldd	r25, Z+24	; 0x18
-     e68:	90 93 cb 05 	sts	0x05CB, r25	; 0x8005cb <top_display_item+0x1>
-     e6c:	80 93 ca 05 	sts	0x05CA, r24	; 0x8005ca <top_display_item>
-     e70:	f3 cf       	rjmp	.-26     	; 0xe58 <menu_up+0x2a>
-        }
-        menu_draw();
-    }
-}
-     e72:	08 95       	ret
-
-00000e74 <menu_enter>:
-
-void menu_enter(void) {
-    if (current_item == NULL) return;
-     e74:	e0 91 cc 05 	lds	r30, 0x05CC	; 0x8005cc <current_item>
-     e78:	f0 91 cd 05 	lds	r31, 0x05CD	; 0x8005cd <current_item+0x1>
-     e7c:	30 97       	sbiw	r30, 0x00	; 0
-     e7e:	89 f1       	breq	.+98     	; 0xee2 <menu_enter+0x6e>
-    if (current_item->child_menu != NULL) {
-     e80:	a1 8d       	ldd	r26, Z+25	; 0x19
-     e82:	b2 8d       	ldd	r27, Z+26	; 0x1a
-     e84:	10 97       	sbiw	r26, 0x00	; 0
-     e86:	b1 f0       	breq	.+44     	; 0xeb4 <menu_enter+0x40>
-        current_menu = current_item->child_menu;
-     e88:	b0 93 cf 05 	sts	0x05CF, r27	; 0x8005cf <current_menu+0x1>
-     e8c:	a0 93 ce 05 	sts	0x05CE, r26	; 0x8005ce <current_menu>
-        current_item = current_menu->first_item;
-     e90:	55 96       	adiw	r26, 0x15	; 21
-     e92:	8d 91       	ld	r24, X+
-     e94:	9c 91       	ld	r25, X
-     e96:	90 93 cd 05 	sts	0x05CD, r25	; 0x8005cd <current_item+0x1>
-     e9a:	80 93 cc 05 	sts	0x05CC, r24	; 0x8005cc <current_item>
-        top_display_item = current_menu->first_item;
-     e9e:	90 93 cb 05 	sts	0x05CB, r25	; 0x8005cb <top_display_item+0x1>
-     ea2:	80 93 ca 05 	sts	0x05CA, r24	; 0x8005ca <top_display_item>
-        cursor_row = 1;
-     ea6:	81 e0       	ldi	r24, 0x01	; 1
-     ea8:	80 93 12 01 	sts	0x0112, r24	; 0x800112 <cursor_row>
-        lcd_clear();
-     eac:	0e 94 04 01 	call	0x208	; 0x208 <lcd_clear>
-        menu_draw();
-     eb0:	0c 94 71 06 	jmp	0xce2	; 0xce2 <menu_draw>
-    } else if (current_item->action != NULL) {
-     eb4:	83 8d       	ldd	r24, Z+27	; 0x1b
-     eb6:	94 8d       	ldd	r25, Z+28	; 0x1c
-     eb8:	00 97       	sbiw	r24, 0x00	; 0
-     eba:	99 f0       	breq	.+38     	; 0xee2 <menu_enter+0x6e>
-        current_state = STATE_RUNNING;
-     ebc:	22 e0       	ldi	r18, 0x02	; 2
-     ebe:	30 e0       	ldi	r19, 0x00	; 0
-     ec0:	30 93 d1 05 	sts	0x05D1, r19	; 0x8005d1 <current_state+0x1>
-     ec4:	20 93 d0 05 	sts	0x05D0, r18	; 0x8005d0 <current_state>
-        active_action_func = current_item->action;
-     ec8:	90 93 c9 05 	sts	0x05C9, r25	; 0x8005c9 <active_action_func+0x1>
-     ecc:	80 93 c8 05 	sts	0x05C8, r24	; 0x8005c8 <active_action_func>
-        action_tick = 0;
-     ed0:	10 92 c6 05 	sts	0x05C6, r1	; 0x8005c6 <action_tick>
-        lcd_clear();
-     ed4:	0e 94 04 01 	call	0x208	; 0x208 <lcd_clear>
-        active_action_func(); // render initial action view
-     ed8:	e0 91 c8 05 	lds	r30, 0x05C8	; 0x8005c8 <active_action_func>
-     edc:	f0 91 c9 05 	lds	r31, 0x05C9	; 0x8005c9 <active_action_func+0x1>
-     ee0:	09 94       	ijmp
-    }
-}
-     ee2:	08 95       	ret
-
-00000ee4 <menu_back>:
-
-void menu_back(void) {
-    if (current_menu->parent_menu != NULL) {
-     ee4:	e0 91 ce 05 	lds	r30, 0x05CE	; 0x8005ce <current_menu>
-     ee8:	f0 91 cf 05 	lds	r31, 0x05CF	; 0x8005cf <current_menu+0x1>
-     eec:	07 88       	ldd	r0, Z+23	; 0x17
-     eee:	f0 8d       	ldd	r31, Z+24	; 0x18
-     ef0:	e0 2d       	mov	r30, r0
-     ef2:	30 97       	sbiw	r30, 0x00	; 0
-     ef4:	a9 f0       	breq	.+42     	; 0xf20 <menu_back+0x3c>
-        // Return to parent menu
-        current_menu = current_menu->parent_menu;
-     ef6:	f0 93 cf 05 	sts	0x05CF, r31	; 0x8005cf <current_menu+0x1>
-     efa:	e0 93 ce 05 	sts	0x05CE, r30	; 0x8005ce <current_menu>
-        current_item = current_menu->first_item;
-     efe:	85 89       	ldd	r24, Z+21	; 0x15
-     f00:	96 89       	ldd	r25, Z+22	; 0x16
-     f02:	90 93 cd 05 	sts	0x05CD, r25	; 0x8005cd <current_item+0x1>
-     f06:	80 93 cc 05 	sts	0x05CC, r24	; 0x8005cc <current_item>
-        top_display_item = current_menu->first_item;
-     f0a:	90 93 cb 05 	sts	0x05CB, r25	; 0x8005cb <top_display_item+0x1>
-     f0e:	80 93 ca 05 	sts	0x05CA, r24	; 0x8005ca <top_display_item>
-        cursor_row = 1;
-     f12:	81 e0       	ldi	r24, 0x01	; 1
-     f14:	80 93 12 01 	sts	0x0112, r24	; 0x800112 <cursor_row>
-        lcd_clear();
-     f18:	0e 94 04 01 	call	0x208	; 0x208 <lcd_clear>
-        menu_draw();
-     f1c:	0c 94 71 06 	jmp	0xce2	; 0xce2 <menu_draw>
-    } else {
-        // At Root Main Menu -> Return to Welcome Screen!
-        current_state = STATE_WELCOME;
-     f20:	10 92 d1 05 	sts	0x05D1, r1	; 0x8005d1 <current_state+0x1>
-     f24:	10 92 d0 05 	sts	0x05D0, r1	; 0x8005d0 <current_state>
-        welcome_char_idx = 0;
-     f28:	10 92 c5 05 	sts	0x05C5, r1	; 0x8005c5 <welcome_char_idx>
-        welcome_timer = 0;
-     f2c:	10 92 c4 05 	sts	0x05C4, r1	; 0x8005c4 <welcome_timer>
-        lcd_clear();
-     f30:	0c 94 04 01 	jmp	0x208	; 0x208 <lcd_clear>
-
-00000f34 <menu_update>:
-     f34:	cf 93       	push	r28
-     f36:	0e 94 d6 02 	call	0x5ac	; 0x5ac <button_triggered>
-     f3a:	c8 2f       	mov	r28, r24
-     f3c:	0e 94 cd 02 	call	0x59a	; 0x59a <button_pressed>
-     f40:	20 91 d0 05 	lds	r18, 0x05D0	; 0x8005d0 <current_state>
-     f44:	30 91 d1 05 	lds	r19, 0x05D1	; 0x8005d1 <current_state+0x1>
-     f48:	85 ff       	sbrs	r24, 5
-     f4a:	2c c0       	rjmp	.+88     	; 0xfa4 <menu_update+0x70>
-     f4c:	21 15       	cp	r18, r1
-     f4e:	31 05       	cpc	r19, r1
-     f50:	49 f1       	breq	.+82     	; 0xfa4 <menu_update+0x70>
-     f52:	23 30       	cpi	r18, 0x03	; 3
-     f54:	31 05       	cpc	r19, r1
-     f56:	11 f4       	brne	.+4      	; 0xf5c <menu_update+0x28>
-     f58:	0e 94 dc 02 	call	0x5b8	; 0x5b8 <clock_start>
-     f5c:	10 92 d1 05 	sts	0x05D1, r1	; 0x8005d1 <current_state+0x1>
-     f60:	10 92 d0 05 	sts	0x05D0, r1	; 0x8005d0 <current_state>
-     f64:	10 92 c9 05 	sts	0x05C9, r1	; 0x8005c9 <active_action_func+0x1>
-     f68:	10 92 c8 05 	sts	0x05C8, r1	; 0x8005c8 <active_action_func>
-     f6c:	87 ed       	ldi	r24, 0xD7	; 215
-     f6e:	92 e0       	ldi	r25, 0x02	; 2
-     f70:	90 93 cf 05 	sts	0x05CF, r25	; 0x8005cf <current_menu+0x1>
-     f74:	80 93 ce 05 	sts	0x05CE, r24	; 0x8005ce <current_menu>
-     f78:	80 91 ec 02 	lds	r24, 0x02EC	; 0x8002ec <MainMenu+0x15>
-     f7c:	90 91 ed 02 	lds	r25, 0x02ED	; 0x8002ed <MainMenu+0x16>
-     f80:	90 93 cd 05 	sts	0x05CD, r25	; 0x8005cd <current_item+0x1>
-     f84:	80 93 cc 05 	sts	0x05CC, r24	; 0x8005cc <current_item>
-     f88:	90 93 cb 05 	sts	0x05CB, r25	; 0x8005cb <top_display_item+0x1>
-     f8c:	80 93 ca 05 	sts	0x05CA, r24	; 0x8005ca <top_display_item>
-     f90:	81 e0       	ldi	r24, 0x01	; 1
-     f92:	80 93 12 01 	sts	0x0112, r24	; 0x800112 <cursor_row>
-     f96:	10 92 c5 05 	sts	0x05C5, r1	; 0x8005c5 <welcome_char_idx>
-     f9a:	10 92 c4 05 	sts	0x05C4, r1	; 0x8005c4 <welcome_timer>
-     f9e:	cf 91       	pop	r28
-     fa0:	0c 94 04 01 	jmp	0x208	; 0x208 <lcd_clear>
-     fa4:	21 15       	cp	r18, r1
-     fa6:	31 05       	cpc	r19, r1
-     fa8:	09 f0       	breq	.+2      	; 0xfac <menu_update+0x78>
-     faa:	54 c0       	rjmp	.+168    	; 0x1054 <__DATA_REGION_LENGTH__+0x54>
-     fac:	88 23       	and	r24, r24
-     fae:	21 f1       	breq	.+72     	; 0xff8 <menu_update+0xc4>
-     fb0:	81 e0       	ldi	r24, 0x01	; 1
-     fb2:	90 e0       	ldi	r25, 0x00	; 0
-     fb4:	90 93 d1 05 	sts	0x05D1, r25	; 0x8005d1 <current_state+0x1>
-     fb8:	80 93 d0 05 	sts	0x05D0, r24	; 0x8005d0 <current_state>
-     fbc:	87 ed       	ldi	r24, 0xD7	; 215
-     fbe:	92 e0       	ldi	r25, 0x02	; 2
-     fc0:	90 93 cf 05 	sts	0x05CF, r25	; 0x8005cf <current_menu+0x1>
-     fc4:	80 93 ce 05 	sts	0x05CE, r24	; 0x8005ce <current_menu>
-     fc8:	80 91 ec 02 	lds	r24, 0x02EC	; 0x8002ec <MainMenu+0x15>
-     fcc:	90 91 ed 02 	lds	r25, 0x02ED	; 0x8002ed <MainMenu+0x16>
-     fd0:	90 93 cd 05 	sts	0x05CD, r25	; 0x8005cd <current_item+0x1>
-     fd4:	80 93 cc 05 	sts	0x05CC, r24	; 0x8005cc <current_item>
-     fd8:	90 93 cb 05 	sts	0x05CB, r25	; 0x8005cb <top_display_item+0x1>
-     fdc:	80 93 ca 05 	sts	0x05CA, r24	; 0x8005ca <top_display_item>
-     fe0:	81 e0       	ldi	r24, 0x01	; 1
-     fe2:	80 93 12 01 	sts	0x0112, r24	; 0x800112 <cursor_row>
-     fe6:	10 92 c7 05 	sts	0x05C7, r1	; 0x8005c7 <blink_counter>
-     fea:	80 93 11 01 	sts	0x0111, r24	; 0x800111 <blink_on>
-     fee:	0e 94 04 01 	call	0x208	; 0x208 <lcd_clear>
-     ff2:	cf 91       	pop	r28
-     ff4:	0c 94 71 06 	jmp	0xce2	; 0xce2 <menu_draw>
-     ff8:	80 91 c4 05 	lds	r24, 0x05C4	; 0x8005c4 <welcome_timer>
-     ffc:	8f 5f       	subi	r24, 0xFF	; 255
-     ffe:	83 30       	cpi	r24, 0x03	; 3
-    1000:	20 f4       	brcc	.+8      	; 0x100a <__DATA_REGION_LENGTH__+0xa>
-    1002:	80 93 c4 05 	sts	0x05C4, r24	; 0x8005c4 <welcome_timer>
-    1006:	cf 91       	pop	r28
-    1008:	08 95       	ret
-    100a:	10 92 c4 05 	sts	0x05C4, r1	; 0x8005c4 <welcome_timer>
-    100e:	60 91 c5 05 	lds	r22, 0x05C5	; 0x8005c5 <welcome_char_idx>
-    1012:	66 30       	cpi	r22, 0x06	; 6
-    1014:	90 f4       	brcc	.+36     	; 0x103a <__DATA_REGION_LENGTH__+0x3a>
-    1016:	6b 5f       	subi	r22, 0xFB	; 251
-    1018:	80 e0       	ldi	r24, 0x00	; 0
-    101a:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    101e:	e0 91 c5 05 	lds	r30, 0x05C5	; 0x8005c5 <welcome_char_idx>
-    1022:	f0 e0       	ldi	r31, 0x00	; 0
-    1024:	eb 56       	subi	r30, 0x6B	; 107
-    1026:	fa 4f       	sbci	r31, 0xFA	; 250
-    1028:	80 81       	ld	r24, Z
-    102a:	0e 94 e6 00 	call	0x1cc	; 0x1cc <lcd_send_data>
-    102e:	80 91 c5 05 	lds	r24, 0x05C5	; 0x8005c5 <welcome_char_idx>
-    1032:	8f 5f       	subi	r24, 0xFF	; 255
-    1034:	80 93 c5 05 	sts	0x05C5, r24	; 0x8005c5 <welcome_char_idx>
-    1038:	e6 cf       	rjmp	.-52     	; 0x1006 <__DATA_REGION_LENGTH__+0x6>
-    103a:	66 31       	cpi	r22, 0x16	; 22
-    103c:	20 f7       	brcc	.-56     	; 0x1006 <__DATA_REGION_LENGTH__+0x6>
-    103e:	ca ef       	ldi	r28, 0xFA	; 250
-    1040:	c6 0f       	add	r28, r22
-    1042:	6c 2f       	mov	r22, r28
-    1044:	81 e0       	ldi	r24, 0x01	; 1
-    1046:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    104a:	ec 2f       	mov	r30, r28
-    104c:	f0 e0       	ldi	r31, 0x00	; 0
-    104e:	e4 56       	subi	r30, 0x64	; 100
-    1050:	fa 4f       	sbci	r31, 0xFA	; 250
-    1052:	ea cf       	rjmp	.-44     	; 0x1028 <__DATA_REGION_LENGTH__+0x28>
-    1054:	23 30       	cpi	r18, 0x03	; 3
-    1056:	31 05       	cpc	r19, r1
-    1058:	09 f0       	breq	.+2      	; 0x105c <__DATA_REGION_LENGTH__+0x5c>
-    105a:	7d c0       	rjmp	.+250    	; 0x1156 <__stack+0x57>
-    105c:	c0 ff       	sbrs	r28, 0
-    105e:	1b c0       	rjmp	.+54     	; 0x1096 <__DATA_REGION_LENGTH__+0x96>
-    1060:	80 91 c1 05 	lds	r24, 0x05C1	; 0x8005c1 <adjust_pos>
-    1064:	88 23       	and	r24, r24
-    1066:	a9 f0       	breq	.+42     	; 0x1092 <__DATA_REGION_LENGTH__+0x92>
-    1068:	81 50       	subi	r24, 0x01	; 1
-    106a:	80 93 c1 05 	sts	0x05C1, r24	; 0x8005c1 <adjust_pos>
-    106e:	81 e0       	ldi	r24, 0x01	; 1
-    1070:	80 93 0a 01 	sts	0x010A, r24	; 0x80010a <adjust_blink_phase>
-    1074:	10 92 c0 05 	sts	0x05C0, r1	; 0x8005c0 <adjust_blink_timer>
-    1078:	0e 94 cd 03 	call	0x79a	; 0x79a <adjust_draw_lcd>
-    107c:	0e 94 82 04 	call	0x904	; 0x904 <adjust_update_7seg>
-    1080:	80 91 c0 05 	lds	r24, 0x05C0	; 0x8005c0 <adjust_blink_timer>
-    1084:	8f 5f       	subi	r24, 0xFF	; 255
-    1086:	84 31       	cpi	r24, 0x14	; 20
-    1088:	08 f0       	brcs	.+2      	; 0x108c <__DATA_REGION_LENGTH__+0x8c>
-    108a:	59 c0       	rjmp	.+178    	; 0x113e <__stack+0x3f>
-    108c:	80 93 c0 05 	sts	0x05C0, r24	; 0x8005c0 <adjust_blink_timer>
-    1090:	ba cf       	rjmp	.-140    	; 0x1006 <__DATA_REGION_LENGTH__+0x6>
-    1092:	85 e0       	ldi	r24, 0x05	; 5
-    1094:	ea cf       	rjmp	.-44     	; 0x106a <__DATA_REGION_LENGTH__+0x6a>
-    1096:	c1 ff       	sbrs	r28, 1
-    1098:	08 c0       	rjmp	.+16     	; 0x10aa <__DATA_REGION_LENGTH__+0xaa>
-    109a:	80 91 c1 05 	lds	r24, 0x05C1	; 0x8005c1 <adjust_pos>
-    109e:	85 30       	cpi	r24, 0x05	; 5
-    10a0:	11 f0       	breq	.+4      	; 0x10a6 <__DATA_REGION_LENGTH__+0xa6>
-    10a2:	8f 5f       	subi	r24, 0xFF	; 255
-    10a4:	e2 cf       	rjmp	.-60     	; 0x106a <__DATA_REGION_LENGTH__+0x6a>
-    10a6:	80 e0       	ldi	r24, 0x00	; 0
-    10a8:	e0 cf       	rjmp	.-64     	; 0x106a <__DATA_REGION_LENGTH__+0x6a>
-    10aa:	c2 ff       	sbrs	r28, 2
-    10ac:	0e c0       	rjmp	.+28     	; 0x10ca <__DATA_REGION_LENGTH__+0xca>
-    10ae:	e0 91 c1 05 	lds	r30, 0x05C1	; 0x8005c1 <adjust_pos>
-    10b2:	f0 e0       	ldi	r31, 0x00	; 0
-    10b4:	e5 5f       	subi	r30, 0xF5	; 245
-    10b6:	fe 4f       	sbci	r31, 0xFE	; 254
-    10b8:	80 81       	ld	r24, Z
-    10ba:	90 e0       	ldi	r25, 0x00	; 0
-    10bc:	01 96       	adiw	r24, 0x01	; 1
-    10be:	6a e0       	ldi	r22, 0x0A	; 10
-    10c0:	70 e0       	ldi	r23, 0x00	; 0
-    10c2:	0e 94 4a 09 	call	0x1294	; 0x1294 <__divmodhi4>
-    10c6:	80 83       	st	Z, r24
-    10c8:	d2 cf       	rjmp	.-92     	; 0x106e <__DATA_REGION_LENGTH__+0x6e>
-    10ca:	c3 ff       	sbrs	r28, 3
-    10cc:	0c c0       	rjmp	.+24     	; 0x10e6 <__DATA_REGION_LENGTH__+0xe6>
-    10ce:	e0 91 c1 05 	lds	r30, 0x05C1	; 0x8005c1 <adjust_pos>
-    10d2:	f0 e0       	ldi	r31, 0x00	; 0
-    10d4:	e5 5f       	subi	r30, 0xF5	; 245
-    10d6:	fe 4f       	sbci	r31, 0xFE	; 254
-    10d8:	80 81       	ld	r24, Z
-    10da:	88 23       	and	r24, r24
-    10dc:	11 f0       	breq	.+4      	; 0x10e2 <__DATA_REGION_LENGTH__+0xe2>
-    10de:	81 50       	subi	r24, 0x01	; 1
-    10e0:	f2 cf       	rjmp	.-28     	; 0x10c6 <__DATA_REGION_LENGTH__+0xc6>
-    10e2:	89 e0       	ldi	r24, 0x09	; 9
-    10e4:	f0 cf       	rjmp	.-32     	; 0x10c6 <__DATA_REGION_LENGTH__+0xc6>
-    10e6:	84 ff       	sbrs	r24, 4
-    10e8:	cb cf       	rjmp	.-106    	; 0x1080 <__DATA_REGION_LENGTH__+0x80>
-    10ea:	20 91 0b 01 	lds	r18, 0x010B	; 0x80010b <adjust_digits>
-    10ee:	9a e0       	ldi	r25, 0x0A	; 10
-    10f0:	80 91 0c 01 	lds	r24, 0x010C	; 0x80010c <adjust_digits+0x1>
-    10f4:	29 9f       	mul	r18, r25
-    10f6:	80 0d       	add	r24, r0
-    10f8:	11 24       	eor	r1, r1
-    10fa:	20 91 0d 01 	lds	r18, 0x010D	; 0x80010d <adjust_digits+0x2>
-    10fe:	60 91 0e 01 	lds	r22, 0x010E	; 0x80010e <adjust_digits+0x3>
-    1102:	29 9f       	mul	r18, r25
-    1104:	60 0d       	add	r22, r0
-    1106:	11 24       	eor	r1, r1
-    1108:	20 91 0f 01 	lds	r18, 0x010F	; 0x80010f <adjust_digits+0x4>
-    110c:	40 91 10 01 	lds	r20, 0x0110	; 0x800110 <adjust_digits+0x5>
-    1110:	29 9f       	mul	r18, r25
-    1112:	40 0d       	add	r20, r0
-    1114:	11 24       	eor	r1, r1
-    1116:	4c 33       	cpi	r20, 0x3C	; 60
-    1118:	08 f0       	brcs	.+2      	; 0x111c <__stack+0x1d>
-    111a:	4b e3       	ldi	r20, 0x3B	; 59
-    111c:	6c 33       	cpi	r22, 0x3C	; 60
-    111e:	08 f0       	brcs	.+2      	; 0x1122 <__stack+0x23>
-    1120:	6b e3       	ldi	r22, 0x3B	; 59
-    1122:	88 31       	cpi	r24, 0x18	; 24
-    1124:	08 f0       	brcs	.+2      	; 0x1128 <__stack+0x29>
-    1126:	87 e1       	ldi	r24, 0x17	; 23
-    1128:	0e 94 4b 03 	call	0x696	; 0x696 <clock_set_time>
-    112c:	0e 94 dc 02 	call	0x5b8	; 0x5b8 <clock_start>
-    1130:	81 e0       	ldi	r24, 0x01	; 1
-    1132:	90 e0       	ldi	r25, 0x00	; 0
-    1134:	90 93 d1 05 	sts	0x05D1, r25	; 0x8005d1 <current_state+0x1>
-    1138:	80 93 d0 05 	sts	0x05D0, r24	; 0x8005d0 <current_state>
-    113c:	58 cf       	rjmp	.-336    	; 0xfee <menu_update+0xba>
-    113e:	10 92 c0 05 	sts	0x05C0, r1	; 0x8005c0 <adjust_blink_timer>
-    1142:	81 e0       	ldi	r24, 0x01	; 1
-    1144:	90 91 0a 01 	lds	r25, 0x010A	; 0x80010a <adjust_blink_phase>
-    1148:	91 11       	cpse	r25, r1
-    114a:	80 e0       	ldi	r24, 0x00	; 0
-    114c:	80 93 0a 01 	sts	0x010A, r24	; 0x80010a <adjust_blink_phase>
-    1150:	cf 91       	pop	r28
-    1152:	0c 94 82 04 	jmp	0x904	; 0x904 <adjust_update_7seg>
-    1156:	22 30       	cpi	r18, 0x02	; 2
-    1158:	31 05       	cpc	r19, r1
-    115a:	01 f5       	brne	.+64     	; 0x119c <__stack+0x9d>
-    115c:	80 ff       	sbrs	r24, 0
-    115e:	0b c0       	rjmp	.+22     	; 0x1176 <__stack+0x77>
-    1160:	81 e0       	ldi	r24, 0x01	; 1
-    1162:	90 e0       	ldi	r25, 0x00	; 0
-    1164:	90 93 d1 05 	sts	0x05D1, r25	; 0x8005d1 <current_state+0x1>
-    1168:	80 93 d0 05 	sts	0x05D0, r24	; 0x8005d0 <current_state>
-    116c:	10 92 c9 05 	sts	0x05C9, r1	; 0x8005c9 <active_action_func+0x1>
-    1170:	10 92 c8 05 	sts	0x05C8, r1	; 0x8005c8 <active_action_func>
-    1174:	3c cf       	rjmp	.-392    	; 0xfee <menu_update+0xba>
-    1176:	e0 91 c8 05 	lds	r30, 0x05C8	; 0x8005c8 <active_action_func>
-    117a:	f0 91 c9 05 	lds	r31, 0x05C9	; 0x8005c9 <active_action_func+0x1>
-    117e:	30 97       	sbiw	r30, 0x00	; 0
-    1180:	09 f4       	brne	.+2      	; 0x1184 <__stack+0x85>
-    1182:	41 cf       	rjmp	.-382    	; 0x1006 <__DATA_REGION_LENGTH__+0x6>
-    1184:	80 91 c6 05 	lds	r24, 0x05C6	; 0x8005c6 <action_tick>
-    1188:	8f 5f       	subi	r24, 0xFF	; 255
-    118a:	8a 30       	cpi	r24, 0x0A	; 10
-    118c:	18 f4       	brcc	.+6      	; 0x1194 <__stack+0x95>
-    118e:	80 93 c6 05 	sts	0x05C6, r24	; 0x8005c6 <action_tick>
-    1192:	39 cf       	rjmp	.-398    	; 0x1006 <__DATA_REGION_LENGTH__+0x6>
-    1194:	10 92 c6 05 	sts	0x05C6, r1	; 0x8005c6 <action_tick>
-    1198:	cf 91       	pop	r28
-    119a:	09 94       	ijmp
-    119c:	21 30       	cpi	r18, 0x01	; 1
-    119e:	31 05       	cpc	r19, r1
-    11a0:	09 f0       	breq	.+2      	; 0x11a4 <__stack+0xa5>
-    11a2:	31 cf       	rjmp	.-414    	; 0x1006 <__DATA_REGION_LENGTH__+0x6>
-    11a4:	c3 ff       	sbrs	r28, 3
-    11a6:	12 c0       	rjmp	.+36     	; 0x11cc <__stack+0xcd>
-    11a8:	0e 94 f4 06 	call	0xde8	; 0xde8 <menu_down>
-    11ac:	80 91 ce 05 	lds	r24, 0x05CE	; 0x8005ce <current_menu>
-    11b0:	90 91 cf 05 	lds	r25, 0x05CF	; 0x8005cf <current_menu+0x1>
-    11b4:	87 5d       	subi	r24, 0xD7	; 215
-    11b6:	92 40       	sbci	r25, 0x02	; 2
-    11b8:	09 f0       	breq	.+2      	; 0x11bc <__stack+0xbd>
-    11ba:	25 cf       	rjmp	.-438    	; 0x1006 <__DATA_REGION_LENGTH__+0x6>
-    11bc:	80 91 c7 05 	lds	r24, 0x05C7	; 0x8005c7 <blink_counter>
-    11c0:	8f 5f       	subi	r24, 0xFF	; 255
-    11c2:	8e 31       	cpi	r24, 0x1E	; 30
-    11c4:	98 f4       	brcc	.+38     	; 0x11ec <__stack+0xed>
-    11c6:	80 93 c7 05 	sts	0x05C7, r24	; 0x8005c7 <blink_counter>
-    11ca:	1d cf       	rjmp	.-454    	; 0x1006 <__DATA_REGION_LENGTH__+0x6>
-    11cc:	c2 ff       	sbrs	r28, 2
-    11ce:	03 c0       	rjmp	.+6      	; 0x11d6 <__stack+0xd7>
-    11d0:	0e 94 17 07 	call	0xe2e	; 0xe2e <menu_up>
-    11d4:	eb cf       	rjmp	.-42     	; 0x11ac <__stack+0xad>
-    11d6:	98 2f       	mov	r25, r24
-    11d8:	92 71       	andi	r25, 0x12	; 18
-    11da:	19 f0       	breq	.+6      	; 0x11e2 <__stack+0xe3>
-    11dc:	0e 94 3a 07 	call	0xe74	; 0xe74 <menu_enter>
-    11e0:	e5 cf       	rjmp	.-54     	; 0x11ac <__stack+0xad>
-    11e2:	80 ff       	sbrs	r24, 0
-    11e4:	e3 cf       	rjmp	.-58     	; 0x11ac <__stack+0xad>
-    11e6:	0e 94 72 07 	call	0xee4	; 0xee4 <menu_back>
-    11ea:	e0 cf       	rjmp	.-64     	; 0x11ac <__stack+0xad>
-    11ec:	10 92 c7 05 	sts	0x05C7, r1	; 0x8005c7 <blink_counter>
-    11f0:	81 e0       	ldi	r24, 0x01	; 1
-    11f2:	90 91 11 01 	lds	r25, 0x0111	; 0x800111 <blink_on>
-    11f6:	91 11       	cpse	r25, r1
-    11f8:	80 e0       	ldi	r24, 0x00	; 0
-    11fa:	80 93 11 01 	sts	0x0111, r24	; 0x800111 <blink_on>
-    11fe:	60 e0       	ldi	r22, 0x00	; 0
-    1200:	80 e0       	ldi	r24, 0x00	; 0
-    1202:	0e 94 57 01 	call	0x2ae	; 0x2ae <lcd_set_cursor>
-    1206:	80 91 11 01 	lds	r24, 0x0111	; 0x800111 <blink_on>
-    120a:	81 11       	cpse	r24, r1
-    120c:	05 c0       	rjmp	.+10     	; 0x1218 <__stack+0x119>
-    120e:	80 e8       	ldi	r24, 0x80	; 128
-    1210:	95 e0       	ldi	r25, 0x05	; 5
-    1212:	cf 91       	pop	r28
-    1214:	0c 94 7e 01 	jmp	0x2fc	; 0x2fc <lcd_send_string>
-    1218:	80 91 ce 05 	lds	r24, 0x05CE	; 0x8005ce <current_menu>
-    121c:	90 91 cf 05 	lds	r25, 0x05CF	; 0x8005cf <current_menu+0x1>
-    1220:	f8 cf       	rjmp	.-16     	; 0x1212 <__stack+0x113>
-
-00001222 <main>:
-
-int main(void) {
-  // Retain the hardware XMEM configuration of the working static menu.
-  MCUCR |= (1 << SRE);
-    1222:	85 b7       	in	r24, 0x35	; 53
-    1224:	80 68       	ori	r24, 0x80	; 128
-    1226:	85 bf       	out	0x35, r24	; 53
-  lcd_init();
-    1228:	0e 94 0c 01 	call	0x218	; 0x218 <lcd_init>
-  clock_init();
-    122c:	0e 94 5f 03 	call	0x6be	; 0x6be <clock_init>
-  menu_init();
-    1230:	0e 94 bf 05 	call	0xb7e	; 0xb7e <menu_init>
-
-  // Timer1 provides a 10 ms tick at 16 MHz; PG3/PG4 remain LCD E/RS.
-  TCCR1A = 0;
-    1234:	1f bc       	out	0x2f, r1	; 47
-  TCCR1B = 0;
-    1236:	1e bc       	out	0x2e, r1	; 46
-  TCNT1 = 0;
-    1238:	1d bc       	out	0x2d, r1	; 45
-    123a:	1c bc       	out	0x2c, r1	; 44
-  OCR1A = (F_CPU / 64UL / 100UL) - 1;
-    123c:	83 ec       	ldi	r24, 0xC3	; 195
-    123e:	99 e0       	ldi	r25, 0x09	; 9
-    1240:	9b bd       	out	0x2b, r25	; 43
-    1242:	8a bd       	out	0x2a, r24	; 42
-  TIFR = (1 << OCF1A);
-    1244:	80 e1       	ldi	r24, 0x10	; 16
-    1246:	86 bf       	out	0x36, r24	; 54
-  TIMSK |= (1 << OCIE1A);
-    1248:	87 b7       	in	r24, 0x37	; 55
-    124a:	80 61       	ori	r24, 0x10	; 16
-    124c:	87 bf       	out	0x37, r24	; 55
-  TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10);
-    124e:	8b e0       	ldi	r24, 0x0B	; 11
-    1250:	8e bd       	out	0x2e, r24	; 46
-  seg7_init(); // Timer0 scans digits and supplies the ONLY 1-second clock tick.
-    1252:	0e 94 af 01 	call	0x35e	; 0x35e <seg7_init>
-  sei();
-    1256:	78 94       	sei
-
-  uint16_t processed = 0;
-    1258:	d0 e0       	ldi	r29, 0x00	; 0
-    125a:	c0 e0       	ldi	r28, 0x00	; 0
-
-  while (1) {
-    uint16_t now;
+void relay_init(void) {
+     e5c:	cf 93       	push	r28
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-    125c:	2f b7       	in	r18, 0x3f	; 63
+     e5e:	cf b7       	in	r28, 0x3f	; 63
     return 1;
 }
 
 static __inline__ uint8_t __iCliRetVal(void)
 {
     cli();
-    125e:	f8 94       	cli
-      now = ticks;
-    1260:	80 91 af 05 	lds	r24, 0x05AF	; 0x8005af <ticks>
-    1264:	90 91 b0 05 	lds	r25, 0x05B0	; 0x8005b0 <ticks+0x1>
+     e60:	f8 94       	cli
+        output_state = 0xF0u | (RELAY_ACTIVE_LOW_MASK & RELAY_MASK);
+     e62:	80 ef       	ldi	r24, 0xF0	; 240
+     e64:	80 93 19 04 	sts	0x0419, r24	; 0x800419 <output_state>
+        buzzer_stop_locked();
+     e68:	0e 94 e6 06 	call	0xdcc	; 0xdcc <buzzer_stop_locked>
+        TCNT2 = 0;
+     e6c:	14 bc       	out	0x24, r1	; 36
+        OCR2 = REST_COUNTS - 1;
+     e6e:	89 ef       	ldi	r24, 0xF9	; 249
+     e70:	83 bd       	out	0x23, r24	; 35
+        RELAYS = output_state;
+     e72:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+     e76:	80 93 05 11 	sts	0x1105, r24	; 0x801105 <__bss_end+0xce7>
     (void)__s;
 }
 
 static __inline__ void __iRestore(const  uint8_t *__s)
 {
     SREG = *__s;
-    1268:	2f bf       	out	0x3f, r18	; 63
+     e7a:	cf bf       	out	0x3f, r28	; 63
     }
-    if (processed == now) continue;
-    126a:	c8 17       	cp	r28, r24
-    126c:	d9 07       	cpc	r29, r25
-    126e:	b1 f3       	breq	.-20     	; 0x125c <main+0x3a>
-    processed++;
-    1270:	21 96       	adiw	r28, 0x01	; 1
-    button_update(); // Read active-HIGH button bits at CSEL0 (0x1100).
-    1272:	0e 94 96 02 	call	0x52c	; 0x52c <button_update>
-    menu_update();
-    1276:	0e 94 9a 07 	call	0xf34	; 0xf34 <menu_update>
-    127a:	f0 cf       	rjmp	.-32     	; 0x125c <main+0x3a>
+}
+     e7c:	cf 91       	pop	r28
+     e7e:	08 95       	ret
 
-0000127c <__udivmodqi4>:
-    127c:	99 1b       	sub	r25, r25
-    127e:	79 e0       	ldi	r23, 0x09	; 9
-    1280:	04 c0       	rjmp	.+8      	; 0x128a <__udivmodqi4_ep>
+00000e80 <relay_set_raw>:
 
-00001282 <__udivmodqi4_loop>:
-    1282:	99 1f       	adc	r25, r25
-    1284:	96 17       	cp	r25, r22
-    1286:	08 f0       	brcs	.+2      	; 0x128a <__udivmodqi4_ep>
-    1288:	96 1b       	sub	r25, r22
+void relay_set_raw(uint8_t state) {
+     e80:	cf 93       	push	r28
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+     e82:	cf b7       	in	r28, 0x3f	; 63
+    return 1;
+}
 
-0000128a <__udivmodqi4_ep>:
-    128a:	88 1f       	adc	r24, r24
-    128c:	7a 95       	dec	r23
-    128e:	c9 f7       	brne	.-14     	; 0x1282 <__udivmodqi4_loop>
-    1290:	80 95       	com	r24
-    1292:	08 95       	ret
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+     e84:	f8 94       	cli
+        relay_apply_locked(state);
+     e86:	0e 94 ff 06 	call	0xdfe	; 0xdfe <relay_apply_locked>
+    (void)__s;
+}
 
-00001294 <__divmodhi4>:
-    1294:	97 fb       	bst	r25, 7
-    1296:	07 2e       	mov	r0, r23
-    1298:	16 f4       	brtc	.+4      	; 0x129e <__divmodhi4+0xa>
-    129a:	00 94       	com	r0
-    129c:	07 d0       	rcall	.+14     	; 0x12ac <__divmodhi4_neg1>
-    129e:	77 fd       	sbrc	r23, 7
-    12a0:	09 d0       	rcall	.+18     	; 0x12b4 <__divmodhi4_neg2>
-    12a2:	0e 94 80 09 	call	0x1300	; 0x1300 <__udivmodhi4>
-    12a6:	07 fc       	sbrc	r0, 7
-    12a8:	05 d0       	rcall	.+10     	; 0x12b4 <__divmodhi4_neg2>
-    12aa:	3e f4       	brtc	.+14     	; 0x12ba <__divmodhi4_exit>
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+     e8a:	cf bf       	out	0x3f, r28	; 63
+    }
+}
+     e8c:	cf 91       	pop	r28
+     e8e:	08 95       	ret
 
-000012ac <__divmodhi4_neg1>:
-    12ac:	90 95       	com	r25
-    12ae:	81 95       	neg	r24
-    12b0:	9f 4f       	sbci	r25, 0xFF	; 255
-    12b2:	08 95       	ret
+00000e90 <relay_get_state>:
 
-000012b4 <__divmodhi4_neg2>:
-    12b4:	70 95       	com	r23
-    12b6:	61 95       	neg	r22
-    12b8:	7f 4f       	sbci	r23, 0xFF	; 255
+uint8_t relay_get_state(void) {
+    return (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+     e90:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+}
+     e94:	8f 70       	andi	r24, 0x0F	; 15
+     e96:	08 95       	ret
 
-000012ba <__divmodhi4_exit>:
-    12ba:	08 95       	ret
+00000e98 <relay_on>:
 
-000012bc <__udivmodsi4>:
-    12bc:	a1 e2       	ldi	r26, 0x21	; 33
-    12be:	1a 2e       	mov	r1, r26
-    12c0:	aa 1b       	sub	r26, r26
-    12c2:	bb 1b       	sub	r27, r27
-    12c4:	fd 01       	movw	r30, r26
-    12c6:	0d c0       	rjmp	.+26     	; 0x12e2 <__udivmodsi4_ep>
+void relay_on(uint8_t num) {
+     e98:	cf 93       	push	r28
+    if (num >= 4) return;
+     e9a:	84 30       	cpi	r24, 0x04	; 4
+     e9c:	90 f4       	brcc	.+36     	; 0xec2 <relay_on+0x2a>
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+     e9e:	cf b7       	in	r28, 0x3f	; 63
+    return 1;
+}
 
-000012c8 <__udivmodsi4_loop>:
-    12c8:	aa 1f       	adc	r26, r26
-    12ca:	bb 1f       	adc	r27, r27
-    12cc:	ee 1f       	adc	r30, r30
-    12ce:	ff 1f       	adc	r31, r31
-    12d0:	a2 17       	cp	r26, r18
-    12d2:	b3 07       	cpc	r27, r19
-    12d4:	e4 07       	cpc	r30, r20
-    12d6:	f5 07       	cpc	r31, r21
-    12d8:	20 f0       	brcs	.+8      	; 0x12e2 <__udivmodsi4_ep>
-    12da:	a2 1b       	sub	r26, r18
-    12dc:	b3 0b       	sbc	r27, r19
-    12de:	e4 0b       	sbc	r30, r20
-    12e0:	f5 0b       	sbc	r31, r21
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+     ea0:	f8 94       	cli
+        relay_apply_locked(state);
+    }
+}
 
-000012e2 <__udivmodsi4_ep>:
-    12e2:	66 1f       	adc	r22, r22
-    12e4:	77 1f       	adc	r23, r23
-    12e6:	88 1f       	adc	r24, r24
-    12e8:	99 1f       	adc	r25, r25
-    12ea:	1a 94       	dec	r1
-    12ec:	69 f7       	brne	.-38     	; 0x12c8 <__udivmodsi4_loop>
-    12ee:	60 95       	com	r22
-    12f0:	70 95       	com	r23
-    12f2:	80 95       	com	r24
-    12f4:	90 95       	com	r25
-    12f6:	9b 01       	movw	r18, r22
-    12f8:	ac 01       	movw	r20, r24
-    12fa:	bd 01       	movw	r22, r26
-    12fc:	cf 01       	movw	r24, r30
-    12fe:	08 95       	ret
+uint8_t relay_get_state(void) {
+    return (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+     ea2:	40 91 19 04 	lds	r20, 0x0419	; 0x800419 <output_state>
+     ea6:	4f 70       	andi	r20, 0x0F	; 15
+}
 
-00001300 <__udivmodhi4>:
-    1300:	aa 1b       	sub	r26, r26
-    1302:	bb 1b       	sub	r27, r27
-    1304:	51 e1       	ldi	r21, 0x11	; 17
-    1306:	07 c0       	rjmp	.+14     	; 0x1316 <__udivmodhi4_ep>
+void relay_on(uint8_t num) {
+    if (num >= 4) return;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        relay_apply_locked(relay_get_state() | (1u << num));
+     ea8:	21 e0       	ldi	r18, 0x01	; 1
+     eaa:	30 e0       	ldi	r19, 0x00	; 0
+     eac:	b9 01       	movw	r22, r18
+     eae:	02 c0       	rjmp	.+4      	; 0xeb4 <relay_on+0x1c>
+     eb0:	66 0f       	add	r22, r22
+     eb2:	77 1f       	adc	r23, r23
+     eb4:	8a 95       	dec	r24
+     eb6:	e2 f7       	brpl	.-8      	; 0xeb0 <relay_on+0x18>
+     eb8:	cb 01       	movw	r24, r22
+     eba:	84 2b       	or	r24, r20
+     ebc:	0e 94 ff 06 	call	0xdfe	; 0xdfe <relay_apply_locked>
+    (void)__s;
+}
 
-00001308 <__udivmodhi4_loop>:
-    1308:	aa 1f       	adc	r26, r26
-    130a:	bb 1f       	adc	r27, r27
-    130c:	a6 17       	cp	r26, r22
-    130e:	b7 07       	cpc	r27, r23
-    1310:	10 f0       	brcs	.+4      	; 0x1316 <__udivmodhi4_ep>
-    1312:	a6 1b       	sub	r26, r22
-    1314:	b7 0b       	sbc	r27, r23
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+     ec0:	cf bf       	out	0x3f, r28	; 63
+    }
+}
+     ec2:	cf 91       	pop	r28
+     ec4:	08 95       	ret
 
-00001316 <__udivmodhi4_ep>:
-    1316:	88 1f       	adc	r24, r24
-    1318:	99 1f       	adc	r25, r25
-    131a:	5a 95       	dec	r21
-    131c:	a9 f7       	brne	.-22     	; 0x1308 <__udivmodhi4_loop>
-    131e:	80 95       	com	r24
-    1320:	90 95       	com	r25
-    1322:	bc 01       	movw	r22, r24
-    1324:	cd 01       	movw	r24, r26
-    1326:	08 95       	ret
+00000ec6 <relay_off>:
+void relay_off(uint8_t num) {
+     ec6:	cf 93       	push	r28
+    if (num >= 4) return;
+     ec8:	84 30       	cpi	r24, 0x04	; 4
+     eca:	88 f4       	brcc	.+34     	; 0xeee <relay_off+0x28>
+     ecc:	28 2f       	mov	r18, r24
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+     ece:	cf b7       	in	r28, 0x3f	; 63
+    return 1;
+}
 
-00001328 <_exit>:
-    1328:	f8 94       	cli
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+     ed0:	f8 94       	cli
+        relay_apply_locked(state);
+    }
+}
 
-0000132a <__stop_program>:
-    132a:	ff cf       	rjmp	.-2      	; 0x132a <__stop_program>
+uint8_t relay_get_state(void) {
+    return (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+     ed2:	30 91 19 04 	lds	r19, 0x0419	; 0x800419 <output_state>
+    }
+}
+void relay_off(uint8_t num) {
+    if (num >= 4) return;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        relay_apply_locked(relay_get_state() & (uint8_t)~(1u << num));
+     ed6:	81 e0       	ldi	r24, 0x01	; 1
+     ed8:	90 e0       	ldi	r25, 0x00	; 0
+     eda:	01 c0       	rjmp	.+2      	; 0xede <relay_off+0x18>
+     edc:	88 0f       	add	r24, r24
+     ede:	2a 95       	dec	r18
+     ee0:	ea f7       	brpl	.-6      	; 0xedc <relay_off+0x16>
+     ee2:	80 95       	com	r24
+        relay_apply_locked(state);
+    }
+}
+
+uint8_t relay_get_state(void) {
+    return (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+     ee4:	3f 70       	andi	r19, 0x0F	; 15
+    }
+}
+void relay_off(uint8_t num) {
+    if (num >= 4) return;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        relay_apply_locked(relay_get_state() & (uint8_t)~(1u << num));
+     ee6:	83 23       	and	r24, r19
+     ee8:	0e 94 ff 06 	call	0xdfe	; 0xdfe <relay_apply_locked>
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+     eec:	cf bf       	out	0x3f, r28	; 63
+    }
+}
+     eee:	cf 91       	pop	r28
+     ef0:	08 95       	ret
+
+00000ef2 <action_relay>:
+}
+
+// Menu callbacks keep relay behavior and its status screen in this module.
+#include "lcd.h"
+static void action_relay(uint8_t channel, uint8_t on)
+{
+     ef2:	1f 93       	push	r17
+     ef4:	cf 93       	push	r28
+     ef6:	df 93       	push	r29
+     ef8:	cd b7       	in	r28, 0x3d	; 61
+     efa:	de b7       	in	r29, 0x3e	; 62
+     efc:	28 97       	sbiw	r28, 0x08	; 8
+     efe:	0f b6       	in	r0, 0x3f	; 63
+     f00:	f8 94       	cli
+     f02:	de bf       	out	0x3e, r29	; 62
+     f04:	0f be       	out	0x3f, r0	; 63
+     f06:	cd bf       	out	0x3d, r28	; 61
+     f08:	18 2f       	mov	r17, r24
+    if (on) relay_on(channel);
+     f0a:	66 23       	and	r22, r22
+     f0c:	91 f1       	breq	.+100    	; 0xf72 <action_relay+0x80>
+     f0e:	0e 94 4c 07 	call	0xe98	; 0xe98 <relay_on>
+    else relay_off(channel);
+    char title[] = "RELAY 1";
+     f12:	88 e0       	ldi	r24, 0x08	; 8
+     f14:	ed e7       	ldi	r30, 0x7D	; 125
+     f16:	f3 e0       	ldi	r31, 0x03	; 3
+     f18:	de 01       	movw	r26, r28
+     f1a:	11 96       	adiw	r26, 0x01	; 1
+     f1c:	01 90       	ld	r0, Z+
+     f1e:	0d 92       	st	X+, r0
+     f20:	8a 95       	dec	r24
+     f22:	e1 f7       	brne	.-8      	; 0xf1c <action_relay+0x2a>
+    title[6] = '1' + channel;
+     f24:	81 e3       	ldi	r24, 0x31	; 49
+     f26:	81 0f       	add	r24, r17
+     f28:	8f 83       	std	Y+7, r24	; 0x07
+    lcd_clear();
+     f2a:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+    lcd_write_line(0, title);
+     f2e:	be 01       	movw	r22, r28
+     f30:	6f 5f       	subi	r22, 0xFF	; 255
+     f32:	7f 4f       	sbci	r23, 0xFF	; 255
+     f34:	80 e0       	ldi	r24, 0x00	; 0
+     f36:	0e 94 71 02 	call	0x4e2	; 0x4e2 <lcd_write_line>
+        relay_apply_locked(state);
+    }
+}
+
+uint8_t relay_get_state(void) {
+    return (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+     f3a:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+     f3e:	8f 70       	andi	r24, 0x0F	; 15
+    else relay_off(channel);
+    char title[] = "RELAY 1";
+    title[6] = '1' + channel;
+    lcd_clear();
+    lcd_write_line(0, title);
+    lcd_write_line(1, relay_get_state() & (1u << channel) ? "STATE: ON" : "STATE: OFF");
+     f40:	90 e0       	ldi	r25, 0x00	; 0
+     f42:	02 c0       	rjmp	.+4      	; 0xf48 <action_relay+0x56>
+     f44:	96 95       	lsr	r25
+     f46:	87 95       	ror	r24
+     f48:	1a 95       	dec	r17
+     f4a:	e2 f7       	brpl	.-8      	; 0xf44 <action_relay+0x52>
+     f4c:	6e ec       	ldi	r22, 0xCE	; 206
+     f4e:	72 e0       	ldi	r23, 0x02	; 2
+     f50:	80 ff       	sbrs	r24, 0
+     f52:	02 c0       	rjmp	.+4      	; 0xf58 <action_relay+0x66>
+     f54:	64 ec       	ldi	r22, 0xC4	; 196
+     f56:	72 e0       	ldi	r23, 0x02	; 2
+     f58:	81 e0       	ldi	r24, 0x01	; 1
+     f5a:	0e 94 71 02 	call	0x4e2	; 0x4e2 <lcd_write_line>
+}
+     f5e:	28 96       	adiw	r28, 0x08	; 8
+     f60:	0f b6       	in	r0, 0x3f	; 63
+     f62:	f8 94       	cli
+     f64:	de bf       	out	0x3e, r29	; 62
+     f66:	0f be       	out	0x3f, r0	; 63
+     f68:	cd bf       	out	0x3d, r28	; 61
+     f6a:	df 91       	pop	r29
+     f6c:	cf 91       	pop	r28
+     f6e:	1f 91       	pop	r17
+     f70:	08 95       	ret
+// Menu callbacks keep relay behavior and its status screen in this module.
+#include "lcd.h"
+static void action_relay(uint8_t channel, uint8_t on)
+{
+    if (on) relay_on(channel);
+    else relay_off(channel);
+     f72:	0e 94 63 07 	call	0xec6	; 0xec6 <relay_off>
+     f76:	cd cf       	rjmp	.-102    	; 0xf12 <action_relay+0x20>
+
+00000f78 <relay_toggle>:
+    if (num >= 4) return;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        relay_apply_locked(relay_get_state() & (uint8_t)~(1u << num));
+    }
+}
+void relay_toggle(uint8_t num) {
+     f78:	cf 93       	push	r28
+    if (num >= 4) return;
+     f7a:	84 30       	cpi	r24, 0x04	; 4
+     f7c:	80 f4       	brcc	.+32     	; 0xf9e <relay_toggle+0x26>
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+     f7e:	cf b7       	in	r28, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+     f80:	f8 94       	cli
+        relay_apply_locked(state);
+    }
+}
+
+uint8_t relay_get_state(void) {
+    return (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+     f82:	90 91 19 04 	lds	r25, 0x0419	; 0x800419 <output_state>
+    }
+}
+void relay_toggle(uint8_t num) {
+    if (num >= 4) return;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        relay_apply_locked(relay_get_state() ^ (1u << num));
+     f86:	21 e0       	ldi	r18, 0x01	; 1
+     f88:	30 e0       	ldi	r19, 0x00	; 0
+     f8a:	01 c0       	rjmp	.+2      	; 0xf8e <relay_toggle+0x16>
+     f8c:	22 0f       	add	r18, r18
+     f8e:	8a 95       	dec	r24
+     f90:	ea f7       	brpl	.-6      	; 0xf8c <relay_toggle+0x14>
+        relay_apply_locked(state);
+    }
+}
+
+uint8_t relay_get_state(void) {
+    return (output_state ^ RELAY_ACTIVE_LOW_MASK) & RELAY_MASK;
+     f92:	89 2f       	mov	r24, r25
+     f94:	8f 70       	andi	r24, 0x0F	; 15
+    }
+}
+void relay_toggle(uint8_t num) {
+    if (num >= 4) return;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        relay_apply_locked(relay_get_state() ^ (1u << num));
+     f96:	82 27       	eor	r24, r18
+     f98:	0e 94 ff 06 	call	0xdfe	; 0xdfe <relay_apply_locked>
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+     f9c:	cf bf       	out	0x3f, r28	; 63
+    }
+}
+     f9e:	cf 91       	pop	r28
+     fa0:	08 95       	ret
+
+00000fa2 <relay_mode_0_2>:
+void relay_mode_0_2(void) { relay_set_raw(RELAY_0_BIT | RELAY_2_BIT); }
+     fa2:	85 e0       	ldi	r24, 0x05	; 5
+     fa4:	0c 94 40 07 	jmp	0xe80	; 0xe80 <relay_set_raw>
+
+00000fa8 <relay_mode_1_3>:
+void relay_mode_1_3(void) { relay_set_raw(RELAY_1_BIT | RELAY_3_BIT); }
+     fa8:	8a e0       	ldi	r24, 0x0A	; 10
+     faa:	0c 94 40 07 	jmp	0xe80	; 0xe80 <relay_set_raw>
+
+00000fae <relay_all_on>:
+void relay_all_on(void) { relay_set_raw(RELAY_MASK); }
+     fae:	8f e0       	ldi	r24, 0x0F	; 15
+     fb0:	0c 94 40 07 	jmp	0xe80	; 0xe80 <relay_set_raw>
+
+00000fb4 <relay_all_off>:
+void relay_all_off(void) { relay_set_raw(0); }
+     fb4:	80 e0       	ldi	r24, 0x00	; 0
+     fb6:	0c 94 40 07 	jmp	0xe80	; 0xe80 <relay_set_raw>
+
+00000fba <relay_buzzer_is_running>:
+uint8_t relay_buzzer_is_running(void) { return buzzer_running; }
+     fba:	80 91 18 04 	lds	r24, 0x0418	; 0x800418 <buzzer_running>
+     fbe:	08 95       	ret
+
+00000fc0 <__vector_9>:
+
+ISR(TIMER2_COMP_vect) {
+     fc0:	1f 92       	push	r1
+     fc2:	0f 92       	push	r0
+     fc4:	0f b6       	in	r0, 0x3f	; 63
+     fc6:	0f 92       	push	r0
+     fc8:	11 24       	eor	r1, r1
+     fca:	0b b6       	in	r0, 0x3b	; 59
+     fcc:	0f 92       	push	r0
+     fce:	2f 93       	push	r18
+     fd0:	3f 93       	push	r19
+     fd2:	4f 93       	push	r20
+     fd4:	5f 93       	push	r21
+     fd6:	6f 93       	push	r22
+     fd8:	7f 93       	push	r23
+     fda:	8f 93       	push	r24
+     fdc:	9f 93       	push	r25
+     fde:	af 93       	push	r26
+     fe0:	bf 93       	push	r27
+     fe2:	ef 93       	push	r30
+     fe4:	ff 93       	push	r31
+    if (buzzer_settle_ticks) {
+     fe6:	80 91 16 04 	lds	r24, 0x0416	; 0x800416 <buzzer_settle_ticks>
+     fea:	90 91 17 04 	lds	r25, 0x0417	; 0x800417 <buzzer_settle_ticks+0x1>
+     fee:	89 2b       	or	r24, r25
+     ff0:	39 f1       	breq	.+78     	; 0x1040 <__DATA_REGION_LENGTH__+0x40>
+        if (--buzzer_settle_ticks) return;
+     ff2:	80 91 16 04 	lds	r24, 0x0416	; 0x800416 <buzzer_settle_ticks>
+     ff6:	90 91 17 04 	lds	r25, 0x0417	; 0x800417 <buzzer_settle_ticks+0x1>
+     ffa:	01 97       	sbiw	r24, 0x01	; 1
+     ffc:	90 93 17 04 	sts	0x0417, r25	; 0x800417 <buzzer_settle_ticks+0x1>
+    1000:	80 93 16 04 	sts	0x0416, r24	; 0x800416 <buzzer_settle_ticks>
+    1004:	89 2b       	or	r24, r25
+    1006:	49 f4       	brne	.+18     	; 0x101a <__DATA_REGION_LENGTH__+0x1a>
+        buzzer_running = 1;
+    1008:	81 e0       	ldi	r24, 0x01	; 1
+    100a:	80 93 18 04 	sts	0x0418, r24	; 0x800418 <buzzer_running>
+    }
+    if (!buzzer_running) return;
+    if (alarm_pattern[alarm_step].tone) output_state ^= BUZZER_BIT;
+    if (--alarm_cycles == 0) {
+        if (++alarm_step == ALARM_STEP_COUNT) alarm_step = 0;
+        alarm_load_step_locked();
+    100e:	0e 94 c7 06 	call	0xd8e	; 0xd8e <alarm_load_step_locked>
+    }
+    RELAYS = output_state; // Preserve relay and reserved outputs.
+    1012:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+    1016:	80 93 05 11 	sts	0x1105, r24	; 0x801105 <__bss_end+0xce7>
+}
+    101a:	ff 91       	pop	r31
+    101c:	ef 91       	pop	r30
+    101e:	bf 91       	pop	r27
+    1020:	af 91       	pop	r26
+    1022:	9f 91       	pop	r25
+    1024:	8f 91       	pop	r24
+    1026:	7f 91       	pop	r23
+    1028:	6f 91       	pop	r22
+    102a:	5f 91       	pop	r21
+    102c:	4f 91       	pop	r20
+    102e:	3f 91       	pop	r19
+    1030:	2f 91       	pop	r18
+    1032:	0f 90       	pop	r0
+    1034:	0b be       	out	0x3b, r0	; 59
+    1036:	0f 90       	pop	r0
+    1038:	0f be       	out	0x3f, r0	; 63
+    103a:	0f 90       	pop	r0
+    103c:	1f 90       	pop	r1
+    103e:	18 95       	reti
+        buzzer_running = 1;
+        alarm_load_step_locked();
+        RELAYS = output_state;
+        return;
+    }
+    if (!buzzer_running) return;
+    1040:	80 91 18 04 	lds	r24, 0x0418	; 0x800418 <buzzer_running>
+    1044:	88 23       	and	r24, r24
+    1046:	49 f3       	breq	.-46     	; 0x101a <__DATA_REGION_LENGTH__+0x1a>
+    if (alarm_pattern[alarm_step].tone) output_state ^= BUZZER_BIT;
+    1048:	e0 91 15 04 	lds	r30, 0x0415	; 0x800415 <alarm_step>
+    104c:	84 e0       	ldi	r24, 0x04	; 4
+    104e:	e8 9f       	mul	r30, r24
+    1050:	f0 01       	movw	r30, r0
+    1052:	11 24       	eor	r1, r1
+    1054:	eb 5d       	subi	r30, 0xDB	; 219
+    1056:	fd 4f       	sbci	r31, 0xFD	; 253
+    1058:	83 81       	ldd	r24, Z+3	; 0x03
+    105a:	88 23       	and	r24, r24
+    105c:	31 f0       	breq	.+12     	; 0x106a <__DATA_REGION_LENGTH__+0x6a>
+    105e:	80 91 19 04 	lds	r24, 0x0419	; 0x800419 <output_state>
+    1062:	90 e1       	ldi	r25, 0x10	; 16
+    1064:	89 27       	eor	r24, r25
+    1066:	80 93 19 04 	sts	0x0419, r24	; 0x800419 <output_state>
+    if (--alarm_cycles == 0) {
+    106a:	80 91 13 04 	lds	r24, 0x0413	; 0x800413 <alarm_cycles>
+    106e:	90 91 14 04 	lds	r25, 0x0414	; 0x800414 <alarm_cycles+0x1>
+    1072:	01 97       	sbiw	r24, 0x01	; 1
+    1074:	90 93 14 04 	sts	0x0414, r25	; 0x800414 <alarm_cycles+0x1>
+    1078:	80 93 13 04 	sts	0x0413, r24	; 0x800413 <alarm_cycles>
+    107c:	89 2b       	or	r24, r25
+    107e:	49 f6       	brne	.-110    	; 0x1012 <__DATA_REGION_LENGTH__+0x12>
+        if (++alarm_step == ALARM_STEP_COUNT) alarm_step = 0;
+    1080:	80 91 15 04 	lds	r24, 0x0415	; 0x800415 <alarm_step>
+    1084:	8f 5f       	subi	r24, 0xFF	; 255
+    1086:	80 93 15 04 	sts	0x0415, r24	; 0x800415 <alarm_step>
+    108a:	82 31       	cpi	r24, 0x12	; 18
+    108c:	09 f0       	breq	.+2      	; 0x1090 <__DATA_REGION_LENGTH__+0x90>
+    108e:	bf cf       	rjmp	.-130    	; 0x100e <__DATA_REGION_LENGTH__+0xe>
+    1090:	10 92 15 04 	sts	0x0415, r1	; 0x800415 <alarm_step>
+    1094:	bc cf       	rjmp	.-136    	; 0x100e <__DATA_REGION_LENGTH__+0xe>
+
+00001096 <action_relay_1_on>:
+    title[6] = '1' + channel;
+    lcd_clear();
+    lcd_write_line(0, title);
+    lcd_write_line(1, relay_get_state() & (1u << channel) ? "STATE: ON" : "STATE: OFF");
+}
+void action_relay_1_on(void) { action_relay(0, 1); }
+    1096:	61 e0       	ldi	r22, 0x01	; 1
+    1098:	80 e0       	ldi	r24, 0x00	; 0
+    109a:	0c 94 79 07 	jmp	0xef2	; 0xef2 <action_relay>
+
+0000109e <action_relay_1_off>:
+void action_relay_1_off(void) { action_relay(0, 0); }
+    109e:	60 e0       	ldi	r22, 0x00	; 0
+    10a0:	80 e0       	ldi	r24, 0x00	; 0
+    10a2:	0c 94 79 07 	jmp	0xef2	; 0xef2 <action_relay>
+
+000010a6 <action_relay_2_on>:
+void action_relay_2_on(void) { action_relay(1, 1); }
+    10a6:	61 e0       	ldi	r22, 0x01	; 1
+    10a8:	81 e0       	ldi	r24, 0x01	; 1
+    10aa:	0c 94 79 07 	jmp	0xef2	; 0xef2 <action_relay>
+
+000010ae <action_relay_2_off>:
+void action_relay_2_off(void) { action_relay(1, 0); }
+    10ae:	60 e0       	ldi	r22, 0x00	; 0
+    10b0:	81 e0       	ldi	r24, 0x01	; 1
+    10b2:	0c 94 79 07 	jmp	0xef2	; 0xef2 <action_relay>
+
+000010b6 <action_relay_3_on>:
+void action_relay_3_on(void) { action_relay(2, 1); }
+    10b6:	61 e0       	ldi	r22, 0x01	; 1
+    10b8:	82 e0       	ldi	r24, 0x02	; 2
+    10ba:	0c 94 79 07 	jmp	0xef2	; 0xef2 <action_relay>
+
+000010be <action_relay_3_off>:
+void action_relay_3_off(void) { action_relay(2, 0); }
+    10be:	60 e0       	ldi	r22, 0x00	; 0
+    10c0:	82 e0       	ldi	r24, 0x02	; 2
+    10c2:	0c 94 79 07 	jmp	0xef2	; 0xef2 <action_relay>
+
+000010c6 <action_relay_4_on>:
+void action_relay_4_on(void) { action_relay(3, 1); }
+    10c6:	61 e0       	ldi	r22, 0x01	; 1
+    10c8:	83 e0       	ldi	r24, 0x03	; 3
+    10ca:	0c 94 79 07 	jmp	0xef2	; 0xef2 <action_relay>
+
+000010ce <action_relay_4_off>:
+void action_relay_4_off(void) { action_relay(3, 0); }
+    10ce:	60 e0       	ldi	r22, 0x00	; 0
+    10d0:	83 e0       	ldi	r24, 0x03	; 3
+    10d2:	0c 94 79 07 	jmp	0xef2	; 0xef2 <action_relay>
+
+000010d6 <draw_members>:
+static uint8_t scroll_position;
+static uint8_t scroll_forward;
+static uint8_t scroll_delay;
+
+static void draw_members(void)
+{
+    10d6:	cf 93       	push	r28
+    10d8:	df 93       	push	r29
+    lcd_set_cursor(2, 0);
+    10da:	60 e0       	ldi	r22, 0x00	; 0
+    10dc:	82 e0       	ldi	r24, 0x02	; 2
+    10de:	0e 94 e5 01 	call	0x3ca	; 0x3ca <lcd_set_cursor>
+    10e2:	d0 e0       	ldi	r29, 0x00	; 0
+    10e4:	c0 e0       	ldi	r28, 0x00	; 0
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++)
+        lcd_send_data((uint8_t)members[scroll_position + column]);
+    10e6:	e0 91 1c 04 	lds	r30, 0x041C	; 0x80041c <scroll_position>
+    10ea:	ce 01       	movw	r24, r28
+    10ec:	83 59       	subi	r24, 0x93	; 147
+    10ee:	9d 4f       	sbci	r25, 0xFD	; 253
+    10f0:	e8 0f       	add	r30, r24
+    10f2:	f9 2f       	mov	r31, r25
+    10f4:	f1 1d       	adc	r31, r1
+    10f6:	80 81       	ld	r24, Z
+    10f8:	0e 94 da 01 	call	0x3b4	; 0x3b4 <lcd_send_data>
+    10fc:	21 96       	adiw	r28, 0x01	; 1
+static uint8_t scroll_delay;
+
+static void draw_members(void)
+{
+    lcd_set_cursor(2, 0);
+    for (uint8_t column = 0; column < LCD_COLUMNS; column++)
+    10fe:	c4 31       	cpi	r28, 0x14	; 20
+    1100:	d1 05       	cpc	r29, r1
+    1102:	89 f7       	brne	.-30     	; 0x10e6 <draw_members+0x10>
+        lcd_send_data((uint8_t)members[scroll_position + column]);
+}
+    1104:	df 91       	pop	r29
+    1106:	cf 91       	pop	r28
+    1108:	08 95       	ret
+
+0000110a <welcome_show>:
+
+void welcome_show(void)
+{
+    scroll_position = 0;
+    110a:	10 92 1c 04 	sts	0x041C, r1	; 0x80041c <scroll_position>
+    scroll_forward = 1;
+    110e:	81 e0       	ldi	r24, 0x01	; 1
+    1110:	80 93 1b 04 	sts	0x041B, r24	; 0x80041b <scroll_forward>
+    scroll_delay = SCROLL_END_PAUSE_TICKS;
+    1114:	84 e6       	ldi	r24, 0x64	; 100
+    1116:	80 93 1a 04 	sts	0x041A, r24	; 0x80041a <scroll_delay>
+    lcd_clear();
+    111a:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+    lcd_write_line(1, "     PROJECT 01");
+    111e:	6e e8       	ldi	r22, 0x8E	; 142
+    1120:	72 e0       	ldi	r23, 0x02	; 2
+    1122:	81 e0       	ldi	r24, 0x01	; 1
+    1124:	0e 94 71 02 	call	0x4e2	; 0x4e2 <lcd_write_line>
+    draw_members();
+    1128:	0c 94 6b 08 	jmp	0x10d6	; 0x10d6 <draw_members>
+
+0000112c <welcome_update>:
+    112c:	80 91 1a 04 	lds	r24, 0x041A	; 0x80041a <scroll_delay>
+    1130:	81 50       	subi	r24, 0x01	; 1
+    1132:	80 93 1a 04 	sts	0x041A, r24	; 0x80041a <scroll_delay>
+    1136:	81 11       	cpse	r24, r1
+    1138:	18 c0       	rjmp	.+48     	; 0x116a <welcome_update+0x3e>
+    113a:	80 91 1c 04 	lds	r24, 0x041C	; 0x80041c <scroll_position>
+    113e:	90 91 1b 04 	lds	r25, 0x041B	; 0x80041b <scroll_forward>
+    1142:	99 23       	and	r25, r25
+    1144:	99 f0       	breq	.+38     	; 0x116c <welcome_update+0x40>
+    1146:	8f 5f       	subi	r24, 0xFF	; 255
+    1148:	80 93 1c 04 	sts	0x041C, r24	; 0x80041c <scroll_position>
+    114c:	8c 30       	cpi	r24, 0x0C	; 12
+    114e:	11 f4       	brne	.+4      	; 0x1154 <welcome_update+0x28>
+    1150:	10 92 1b 04 	sts	0x041B, r1	; 0x80041b <scroll_forward>
+    1154:	0e 94 6b 08 	call	0x10d6	; 0x10d6 <draw_members>
+    1158:	80 91 1c 04 	lds	r24, 0x041C	; 0x80041c <scroll_position>
+    115c:	88 23       	and	r24, r24
+    115e:	11 f0       	breq	.+4      	; 0x1164 <welcome_update+0x38>
+    1160:	8c 30       	cpi	r24, 0x0C	; 12
+    1162:	69 f4       	brne	.+26     	; 0x117e <welcome_update+0x52>
+    1164:	84 e6       	ldi	r24, 0x64	; 100
+    1166:	80 93 1a 04 	sts	0x041A, r24	; 0x80041a <scroll_delay>
+    116a:	08 95       	ret
+    116c:	81 50       	subi	r24, 0x01	; 1
+    116e:	80 93 1c 04 	sts	0x041C, r24	; 0x80041c <scroll_position>
+    1172:	81 11       	cpse	r24, r1
+    1174:	ef cf       	rjmp	.-34     	; 0x1154 <welcome_update+0x28>
+    1176:	81 e0       	ldi	r24, 0x01	; 1
+    1178:	80 93 1b 04 	sts	0x041B, r24	; 0x80041b <scroll_forward>
+    117c:	eb cf       	rjmp	.-42     	; 0x1154 <welcome_update+0x28>
+    117e:	89 e1       	ldi	r24, 0x19	; 25
+    1180:	f2 cf       	rjmp	.-28     	; 0x1166 <welcome_update+0x3a>
+
+00001182 <main>:
+    if (*selected != before) draw_menu();
+}
+
+int main(void)
+{
+    XMCRA = (1 << SRW11);
+    1182:	82 e0       	ldi	r24, 0x02	; 2
+    1184:	80 93 6d 00 	sts	0x006D, r24	; 0x80006d <__TEXT_REGION_LENGTH__+0x7e006d>
+    MCUCR |= (1 << SRE) | (1 << SRW10);
+    1188:	85 b7       	in	r24, 0x35	; 53
+    118a:	80 6c       	ori	r24, 0xC0	; 192
+    118c:	85 bf       	out	0x35, r24	; 53
+    relay_init();
+    118e:	0e 94 2e 07 	call	0xe5c	; 0xe5c <relay_init>
+    LED_7CONTROL = 0;
+    1192:	10 92 04 11 	sts	0x1104, r1	; 0x801104 <__bss_end+0xce6>
+    LED_7DATA = 0;
+    1196:	10 92 03 11 	sts	0x1103, r1	; 0x801103 <__bss_end+0xce5>
+    lcd_init();
+    119a:	0e 94 27 02 	call	0x44e	; 0x44e <lcd_init>
+    draw_welcome();
+    119e:	0e 94 99 00 	call	0x132	; 0x132 <draw_welcome>
+
+    TCCR1A = 0;
+    11a2:	1f bc       	out	0x2f, r1	; 47
+    TCCR1B = 0;
+    11a4:	1e bc       	out	0x2e, r1	; 46
+    TCNT1 = 0;
+    11a6:	1d bc       	out	0x2d, r1	; 45
+    11a8:	1c bc       	out	0x2c, r1	; 44
+    OCR1A = (F_CPU / 64UL / 100UL) - 1;
+    11aa:	83 ec       	ldi	r24, 0xC3	; 195
+    11ac:	99 e0       	ldi	r25, 0x09	; 9
+    11ae:	9b bd       	out	0x2b, r25	; 43
+    11b0:	8a bd       	out	0x2a, r24	; 42
+    TIFR = (1 << OCF1A);
+    11b2:	80 e1       	ldi	r24, 0x10	; 16
+    11b4:	86 bf       	out	0x36, r24	; 54
+    TIMSK |= (1 << OCIE1A);
+    11b6:	87 b7       	in	r24, 0x37	; 55
+    11b8:	80 61       	ori	r24, 0x10	; 16
+    11ba:	87 bf       	out	0x37, r24	; 55
+    TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10);
+    11bc:	8b e0       	ldi	r24, 0x0B	; 11
+    11be:	8e bd       	out	0x2e, r24	; 46
+    seg7_init();
+    11c0:	0e 94 8b 02 	call	0x516	; 0x516 <seg7_init>
+    sei();
+    11c4:	78 94       	sei
+
+    uint16_t processed = 0;
+    11c6:	d0 e0       	ldi	r29, 0x00	; 0
+    11c8:	c0 e0       	ldi	r28, 0x00	; 0
+static void apply_relay_action(void)
+{
+    // Existing relay module/driver behavior, including its buzzer linkage.
+    if (relay_selection == 0) relay_on(0);
+    else relay_off(0);
+    screen = SCREEN_RELAY_STATUS;
+    11ca:	95 e0       	ldi	r25, 0x05	; 5
+    11cc:	89 2e       	mov	r8, r25
+    11ce:	91 2c       	mov	r9, r1
+static void start_led_mode(void)
+{
+    active_led_mode = led_selection;
+    led_value = (active_led_mode == 1 || active_led_mode == 3) ? 9999 : 0;
+
+    screen = SCREEN_LED_RUN;
+    11d0:	23 e0       	ldi	r18, 0x03	; 3
+    11d2:	e2 2e       	mov	r14, r18
+    11d4:	f1 2c       	mov	r15, r1
+    uint8_t before = *selected;
+    if ((navigation & BTN_BIT_DOWN) && *selected + 1 < count) (*selected)++;
+    else if ((navigation & BTN_BIT_UP) && *selected > 0) (*selected)--;
+    else if (pressed & (BTN_BIT_GO | BTN_BIT_RIGHT)) {
+        if (screen == SCREEN_DEVICES) {
+            open_menu(device_selection == 0 ? SCREEN_LED_MENU : SCREEN_RELAY_MENU);
+    11d6:	34 e0       	ldi	r19, 0x04	; 4
+    11d8:	c3 2e       	mov	r12, r19
+    11da:	d1 2c       	mov	r13, r1
+    11dc:	42 e0       	ldi	r20, 0x02	; 2
+    11de:	a4 2e       	mov	r10, r20
+    11e0:	b1 2c       	mov	r11, r1
+        draw_list("RELAY:", relay_modes, 2, relay_selection);
+}
+
+static void open_menu(Screen target)
+{
+    screen = target;
+    11e2:	01 e0       	ldi	r16, 0x01	; 1
+    11e4:	10 e0       	ldi	r17, 0x00	; 0
+    sei();
+
+    uint16_t processed = 0;
+    while (1) {
+        uint16_t now;
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { now = ticks; }
+    11e6:	2f b7       	in	r18, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+    11e8:	f8 94       	cli
+    11ea:	80 91 b8 03 	lds	r24, 0x03B8	; 0x8003b8 <__data_end>
+    11ee:	90 91 b9 03 	lds	r25, 0x03B9	; 0x8003b9 <__data_end+0x1>
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+    11f2:	2f bf       	out	0x3f, r18	; 63
+        if (processed == now) continue;
+    11f4:	c8 17       	cp	r28, r24
+    11f6:	d9 07       	cpc	r29, r25
+    11f8:	b1 f3       	breq	.-20     	; 0x11e6 <main+0x64>
+        processed++;
+    11fa:	21 96       	adiw	r28, 0x01	; 1
+        button_update();
+    11fc:	0e 94 5e 04 	call	0x8bc	; 0x8bc <button_update>
+        ui_update(button_pressed(), button_triggered());
+    1200:	0e 94 9e 04 	call	0x93c	; 0x93c <button_triggered>
+    1204:	78 2e       	mov	r7, r24
+    1206:	0e 94 95 04 	call	0x92a	; 0x92a <button_pressed>
+}
+
+// Call every 10 ms. Confirm/back/exit use new presses; UP/DOWN may repeat.
+static void ui_update(uint8_t pressed, uint8_t navigation)
+{
+    if (screen == SCREEN_WELCOME) {
+    120a:	20 91 c3 03 	lds	r18, 0x03C3	; 0x8003c3 <screen>
+    120e:	30 91 c4 03 	lds	r19, 0x03C4	; 0x8003c4 <screen+0x1>
+    1212:	21 15       	cp	r18, r1
+    1214:	31 05       	cpc	r19, r1
+    1216:	a1 f5       	brne	.+104    	; 0x1280 <main+0xfe>
+        if (pressed) {
+    1218:	88 23       	and	r24, r24
+    121a:	39 f0       	breq	.+14     	; 0x122a <main+0xa8>
+            device_selection = 0;
+    121c:	10 92 c2 03 	sts	0x03C2, r1	; 0x8003c2 <device_selection>
+        draw_list("RELAY:", relay_modes, 2, relay_selection);
+}
+
+static void open_menu(Screen target)
+{
+    screen = target;
+    1220:	10 93 c4 03 	sts	0x03C4, r17	; 0x8003c4 <screen+0x1>
+    1224:	00 93 c3 03 	sts	0x03C3, r16	; 0x8003c3 <screen>
+    1228:	3c c0       	rjmp	.+120    	; 0x12a2 <main+0x120>
+    draw_menu();
+}
+
+static void scroll_welcome(void)
+{
+    if (--scroll_delay != 0) return;
+    122a:	80 91 ba 03 	lds	r24, 0x03BA	; 0x8003ba <scroll_delay>
+    122e:	81 50       	subi	r24, 0x01	; 1
+    1230:	80 93 ba 03 	sts	0x03BA, r24	; 0x8003ba <scroll_delay>
+    1234:	81 11       	cpse	r24, r1
+    1236:	d7 cf       	rjmp	.-82     	; 0x11e6 <main+0x64>
+    1238:	80 91 bc 03 	lds	r24, 0x03BC	; 0x8003bc <scroll_position>
+    if (scroll_forward) {
+    123c:	90 91 bb 03 	lds	r25, 0x03BB	; 0x8003bb <scroll_forward>
+    1240:	99 23       	and	r25, r25
+    1242:	99 f0       	breq	.+38     	; 0x126a <main+0xe8>
+        if (++scroll_position == SCROLL_MAX) scroll_forward = 0;
+    1244:	8f 5f       	subi	r24, 0xFF	; 255
+    1246:	80 93 bc 03 	sts	0x03BC, r24	; 0x8003bc <scroll_position>
+    124a:	8c 30       	cpi	r24, 0x0C	; 12
+    124c:	11 f4       	brne	.+4      	; 0x1252 <main+0xd0>
+    124e:	10 92 bb 03 	sts	0x03BB, r1	; 0x8003bb <scroll_forward>
+    } else {
+        if (--scroll_position == 0) scroll_forward = 1;
+    }
+    draw_members();
+    1252:	0e 94 7f 00 	call	0xfe	; 0xfe <draw_members>
+    scroll_delay = (scroll_position == 0 || scroll_position == SCROLL_MAX)
+    1256:	80 91 bc 03 	lds	r24, 0x03BC	; 0x8003bc <scroll_position>
+    125a:	88 23       	and	r24, r24
+    125c:	11 f0       	breq	.+4      	; 0x1262 <main+0xe0>
+    125e:	8c 30       	cpi	r24, 0x0C	; 12
+    1260:	69 f4       	brne	.+26     	; 0x127c <main+0xfa>
+    1262:	84 e6       	ldi	r24, 0x64	; 100
+    1264:	80 93 ba 03 	sts	0x03BA, r24	; 0x8003ba <scroll_delay>
+    1268:	be cf       	rjmp	.-132    	; 0x11e6 <main+0x64>
+{
+    if (--scroll_delay != 0) return;
+    if (scroll_forward) {
+        if (++scroll_position == SCROLL_MAX) scroll_forward = 0;
+    } else {
+        if (--scroll_position == 0) scroll_forward = 1;
+    126a:	81 50       	subi	r24, 0x01	; 1
+    126c:	80 93 bc 03 	sts	0x03BC, r24	; 0x8003bc <scroll_position>
+    1270:	81 11       	cpse	r24, r1
+    1272:	ef cf       	rjmp	.-34     	; 0x1252 <main+0xd0>
+    1274:	81 e0       	ldi	r24, 0x01	; 1
+    1276:	80 93 bb 03 	sts	0x03BB, r24	; 0x8003bb <scroll_forward>
+    127a:	eb cf       	rjmp	.-42     	; 0x1252 <main+0xd0>
+    }
+    draw_members();
+    scroll_delay = (scroll_position == 0 || scroll_position == SCROLL_MAX)
+    127c:	89 e1       	ldi	r24, 0x19	; 25
+    127e:	f2 cf       	rjmp	.-28     	; 0x1264 <main+0xe2>
+            device_selection = 0;
+            open_menu(SCREEN_DEVICES);
+        } else scroll_welcome();
+        return;
+    }
+    if (pressed & BTN_BIT_1) {
+    1280:	85 ff       	sbrs	r24, 5
+    1282:	03 c0       	rjmp	.+6      	; 0x128a <main+0x108>
+        draw_welcome();
+    1284:	0e 94 99 00 	call	0x132	; 0x132 <draw_welcome>
+    1288:	ae cf       	rjmp	.-164    	; 0x11e6 <main+0x64>
+        return;
+    }
+    if (pressed & BTN_BIT_LEFT) {
+    128a:	80 ff       	sbrs	r24, 0
+    128c:	18 c0       	rjmp	.+48     	; 0x12be <main+0x13c>
+        if (screen == SCREEN_DEVICES) draw_welcome();
+    128e:	21 30       	cpi	r18, 0x01	; 1
+    1290:	31 05       	cpc	r19, r1
+    1292:	c1 f3       	breq	.-16     	; 0x1284 <main+0x102>
+        else if (screen == SCREEN_LED_RUN) open_menu(SCREEN_LED_MENU);
+    1294:	23 30       	cpi	r18, 0x03	; 3
+    1296:	31 05       	cpc	r19, r1
+    1298:	49 f4       	brne	.+18     	; 0x12ac <main+0x12a>
+        draw_list("RELAY:", relay_modes, 2, relay_selection);
+}
+
+static void open_menu(Screen target)
+{
+    screen = target;
+    129a:	b0 92 c4 03 	sts	0x03C4, r11	; 0x8003c4 <screen+0x1>
+    129e:	a0 92 c3 03 	sts	0x03C3, r10	; 0x8003c3 <screen>
+    lcd_clear();
+    12a2:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+    draw_menu();
+    12a6:	0e 94 65 01 	call	0x2ca	; 0x2ca <draw_menu>
+    12aa:	9d cf       	rjmp	.-198    	; 0x11e6 <main+0x64>
+        return;
+    }
+    if (pressed & BTN_BIT_LEFT) {
+        if (screen == SCREEN_DEVICES) draw_welcome();
+        else if (screen == SCREEN_LED_RUN) open_menu(SCREEN_LED_MENU);
+        else if (screen == SCREEN_RELAY_STATUS) open_menu(SCREEN_RELAY_MENU);
+    12ac:	25 30       	cpi	r18, 0x05	; 5
+    12ae:	31 05       	cpc	r19, r1
+    12b0:	09 f0       	breq	.+2      	; 0x12b4 <main+0x132>
+    12b2:	b6 cf       	rjmp	.-148    	; 0x1220 <main+0x9e>
+        draw_list("RELAY:", relay_modes, 2, relay_selection);
+}
+
+static void open_menu(Screen target)
+{
+    screen = target;
+    12b4:	d0 92 c4 03 	sts	0x03C4, r13	; 0x8003c4 <screen+0x1>
+    12b8:	c0 92 c3 03 	sts	0x03C3, r12	; 0x8003c3 <screen>
+    12bc:	f2 cf       	rjmp	.-28     	; 0x12a2 <main+0x120>
+        else if (screen == SCREEN_LED_RUN) open_menu(SCREEN_LED_MENU);
+        else if (screen == SCREEN_RELAY_STATUS) open_menu(SCREEN_RELAY_MENU);
+        else open_menu(SCREEN_DEVICES);
+        return;
+    }
+    if (screen == SCREEN_LED_RUN) {
+    12be:	23 30       	cpi	r18, 0x03	; 3
+    12c0:	31 05       	cpc	r19, r1
+    12c2:	49 f5       	brne	.+82     	; 0x1316 <main+0x194>
+    display_led_value();
+}
+
+static void run_led_press(uint8_t pressed)
+{
+    uint16_t before = led_value;
+    12c4:	20 91 bd 03 	lds	r18, 0x03BD	; 0x8003bd <led_value>
+    12c8:	30 91 be 03 	lds	r19, 0x03BE	; 0x8003be <led_value+0x1>
+    if (active_led_mode == 2 && (pressed & BTN_BIT_UP) && led_value < 9999)
+    12cc:	90 91 bf 03 	lds	r25, 0x03BF	; 0x8003bf <active_led_mode>
+    12d0:	92 30       	cpi	r25, 0x02	; 2
+    12d2:	b9 f4       	brne	.+46     	; 0x1302 <main+0x180>
+    12d4:	82 ff       	sbrs	r24, 2
+    12d6:	0a c0       	rjmp	.+20     	; 0x12ec <main+0x16a>
+    12d8:	2f 30       	cpi	r18, 0x0F	; 15
+    12da:	87 e2       	ldi	r24, 0x27	; 39
+    12dc:	38 07       	cpc	r19, r24
+    12de:	30 f4       	brcc	.+12     	; 0x12ec <main+0x16a>
+        led_value++;
+    12e0:	c9 01       	movw	r24, r18
+    12e2:	01 96       	adiw	r24, 0x01	; 1
+    else if (active_led_mode == 3 && (pressed & BTN_BIT_DOWN) && led_value > 0)
+        led_value--;
+    12e4:	90 93 be 03 	sts	0x03BE, r25	; 0x8003be <led_value+0x1>
+    12e8:	80 93 bd 03 	sts	0x03BD, r24	; 0x8003bd <led_value>
+    if (led_value != before) display_led_value();
+    12ec:	80 91 bd 03 	lds	r24, 0x03BD	; 0x8003bd <led_value>
+    12f0:	90 91 be 03 	lds	r25, 0x03BE	; 0x8003be <led_value+0x1>
+    12f4:	28 17       	cp	r18, r24
+    12f6:	39 07       	cpc	r19, r25
+    12f8:	09 f4       	brne	.+2      	; 0x12fc <main+0x17a>
+    12fa:	75 cf       	rjmp	.-278    	; 0x11e6 <main+0x64>
+    led_value = (active_led_mode == 1 || active_led_mode == 3) ? 9999 : 0;
+
+    screen = SCREEN_LED_RUN;
+    lcd_clear();
+    write_row(0, led_modes[active_led_mode]);
+    display_led_value();
+    12fc:	0e 94 fe 00 	call	0x1fc	; 0x1fc <display_led_value>
+    1300:	72 cf       	rjmp	.-284    	; 0x11e6 <main+0x64>
+static void run_led_press(uint8_t pressed)
+{
+    uint16_t before = led_value;
+    if (active_led_mode == 2 && (pressed & BTN_BIT_UP) && led_value < 9999)
+        led_value++;
+    else if (active_led_mode == 3 && (pressed & BTN_BIT_DOWN) && led_value > 0)
+    1302:	93 30       	cpi	r25, 0x03	; 3
+    1304:	99 f7       	brne	.-26     	; 0x12ec <main+0x16a>
+    1306:	83 ff       	sbrs	r24, 3
+    1308:	f1 cf       	rjmp	.-30     	; 0x12ec <main+0x16a>
+    130a:	21 15       	cp	r18, r1
+    130c:	31 05       	cpc	r19, r1
+    130e:	71 f3       	breq	.-36     	; 0x12ec <main+0x16a>
+        led_value--;
+    1310:	c9 01       	movw	r24, r18
+    1312:	01 97       	sbiw	r24, 0x01	; 1
+    1314:	e7 cf       	rjmp	.-50     	; 0x12e4 <main+0x162>
+    }
+    if (screen == SCREEN_LED_RUN) {
+        run_led_press(pressed);
+        return;
+    }
+    if (screen == SCREEN_RELAY_STATUS) return;
+    1316:	25 30       	cpi	r18, 0x05	; 5
+    1318:	31 05       	cpc	r19, r1
+    131a:	09 f4       	brne	.+2      	; 0x131e <main+0x19c>
+    131c:	64 cf       	rjmp	.-312    	; 0x11e6 <main+0x64>
+
+    uint8_t *selected;
+    uint8_t count;
+    if (screen == SCREEN_DEVICES) {
+        selected = &device_selection; count = 2;
+    131e:	90 91 c2 03 	lds	r25, 0x03C2	; 0x8003c2 <device_selection>
+    1322:	62 e0       	ldi	r22, 0x02	; 2
+    1324:	e2 ec       	ldi	r30, 0xC2	; 194
+    1326:	f3 e0       	ldi	r31, 0x03	; 3
+    }
+    if (screen == SCREEN_RELAY_STATUS) return;
+
+    uint8_t *selected;
+    uint8_t count;
+    if (screen == SCREEN_DEVICES) {
+    1328:	21 30       	cpi	r18, 0x01	; 1
+    132a:	31 05       	cpc	r19, r1
+    132c:	69 f0       	breq	.+26     	; 0x1348 <main+0x1c6>
+        selected = &device_selection; count = 2;
+    } else if (screen == SCREEN_LED_MENU) {
+        selected = &led_selection; count = 4;
+    132e:	90 91 c1 03 	lds	r25, 0x03C1	; 0x8003c1 <led_selection>
+    1332:	64 e0       	ldi	r22, 0x04	; 4
+    1334:	e1 ec       	ldi	r30, 0xC1	; 193
+    1336:	f3 e0       	ldi	r31, 0x03	; 3
+
+    uint8_t *selected;
+    uint8_t count;
+    if (screen == SCREEN_DEVICES) {
+        selected = &device_selection; count = 2;
+    } else if (screen == SCREEN_LED_MENU) {
+    1338:	22 30       	cpi	r18, 0x02	; 2
+    133a:	31 05       	cpc	r19, r1
+    133c:	29 f0       	breq	.+10     	; 0x1348 <main+0x1c6>
+        selected = &led_selection; count = 4;
+    } else {
+        selected = &relay_selection; count = 2;
+    133e:	90 91 c0 03 	lds	r25, 0x03C0	; 0x8003c0 <relay_selection>
+    1342:	62 e0       	ldi	r22, 0x02	; 2
+    1344:	e0 ec       	ldi	r30, 0xC0	; 192
+    1346:	f3 e0       	ldi	r31, 0x03	; 3
+    }
+    uint8_t before = *selected;
+    if ((navigation & BTN_BIT_DOWN) && *selected + 1 < count) (*selected)++;
+    1348:	73 fe       	sbrs	r7, 3
+    134a:	0f c0       	rjmp	.+30     	; 0x136a <main+0x1e8>
+    134c:	49 2f       	mov	r20, r25
+    134e:	50 e0       	ldi	r21, 0x00	; 0
+    1350:	4f 5f       	subi	r20, 0xFF	; 255
+    1352:	5f 4f       	sbci	r21, 0xFF	; 255
+    1354:	64 17       	cp	r22, r20
+    1356:	15 06       	cpc	r1, r21
+    1358:	41 f0       	breq	.+16     	; 0x136a <main+0x1e8>
+    135a:	3c f0       	brlt	.+14     	; 0x136a <main+0x1e8>
+    135c:	81 e0       	ldi	r24, 0x01	; 1
+    else if ((navigation & BTN_BIT_UP) && *selected > 0) (*selected)--;
+    135e:	89 0f       	add	r24, r25
+    1360:	80 83       	st	Z, r24
+            open_menu(device_selection == 0 ? SCREEN_LED_MENU : SCREEN_RELAY_MENU);
+        } else if (screen == SCREEN_LED_MENU) start_led_mode();
+        else apply_relay_action();
+        return;
+    }
+    if (*selected != before) draw_menu();
+    1362:	80 81       	ld	r24, Z
+    1364:	98 13       	cpse	r25, r24
+    1366:	9f cf       	rjmp	.-194    	; 0x12a6 <main+0x124>
+    1368:	3e cf       	rjmp	.-388    	; 0x11e6 <main+0x64>
+    } else {
+        selected = &relay_selection; count = 2;
+    }
+    uint8_t before = *selected;
+    if ((navigation & BTN_BIT_DOWN) && *selected + 1 < count) (*selected)++;
+    else if ((navigation & BTN_BIT_UP) && *selected > 0) (*selected)--;
+    136a:	72 fe       	sbrs	r7, 2
+    136c:	04 c0       	rjmp	.+8      	; 0x1376 <main+0x1f4>
+    136e:	99 23       	and	r25, r25
+    1370:	11 f0       	breq	.+4      	; 0x1376 <main+0x1f4>
+    1372:	8f ef       	ldi	r24, 0xFF	; 255
+    1374:	f4 cf       	rjmp	.-24     	; 0x135e <main+0x1dc>
+    else if (pressed & (BTN_BIT_GO | BTN_BIT_RIGHT)) {
+    1376:	82 71       	andi	r24, 0x12	; 18
+    1378:	a1 f3       	breq	.-24     	; 0x1362 <main+0x1e0>
+        if (screen == SCREEN_DEVICES) {
+    137a:	21 30       	cpi	r18, 0x01	; 1
+    137c:	31 05       	cpc	r19, r1
+    137e:	71 f4       	brne	.+28     	; 0x139c <main+0x21a>
+            open_menu(device_selection == 0 ? SCREEN_LED_MENU : SCREEN_RELAY_MENU);
+    1380:	80 91 c2 03 	lds	r24, 0x03C2	; 0x8003c2 <device_selection>
+    1384:	81 11       	cpse	r24, r1
+    1386:	07 c0       	rjmp	.+14     	; 0x1396 <main+0x214>
+    1388:	82 e0       	ldi	r24, 0x02	; 2
+    138a:	90 e0       	ldi	r25, 0x00	; 0
+        draw_list("RELAY:", relay_modes, 2, relay_selection);
+}
+
+static void open_menu(Screen target)
+{
+    screen = target;
+    138c:	90 93 c4 03 	sts	0x03C4, r25	; 0x8003c4 <screen+0x1>
+    1390:	80 93 c3 03 	sts	0x03C3, r24	; 0x8003c3 <screen>
+    1394:	86 cf       	rjmp	.-244    	; 0x12a2 <main+0x120>
+    uint8_t before = *selected;
+    if ((navigation & BTN_BIT_DOWN) && *selected + 1 < count) (*selected)++;
+    else if ((navigation & BTN_BIT_UP) && *selected > 0) (*selected)--;
+    else if (pressed & (BTN_BIT_GO | BTN_BIT_RIGHT)) {
+        if (screen == SCREEN_DEVICES) {
+            open_menu(device_selection == 0 ? SCREEN_LED_MENU : SCREEN_RELAY_MENU);
+    1396:	84 e0       	ldi	r24, 0x04	; 4
+    1398:	90 e0       	ldi	r25, 0x00	; 0
+    139a:	f8 cf       	rjmp	.-16     	; 0x138c <main+0x20a>
+        } else if (screen == SCREEN_LED_MENU) start_led_mode();
+    139c:	22 30       	cpi	r18, 0x02	; 2
+    139e:	31 05       	cpc	r19, r1
+    13a0:	19 f5       	brne	.+70     	; 0x13e8 <main+0x266>
+    lcd_send_string("         ");
+}
+
+static void start_led_mode(void)
+{
+    active_led_mode = led_selection;
+    13a2:	80 91 c1 03 	lds	r24, 0x03C1	; 0x8003c1 <led_selection>
+    13a6:	80 93 bf 03 	sts	0x03BF, r24	; 0x8003bf <active_led_mode>
+    led_value = (active_led_mode == 1 || active_led_mode == 3) ? 9999 : 0;
+    13aa:	8d 7f       	andi	r24, 0xFD	; 253
+    13ac:	81 30       	cpi	r24, 0x01	; 1
+    13ae:	c9 f4       	brne	.+50     	; 0x13e2 <main+0x260>
+    13b0:	8f e0       	ldi	r24, 0x0F	; 15
+    13b2:	97 e2       	ldi	r25, 0x27	; 39
+    13b4:	90 93 be 03 	sts	0x03BE, r25	; 0x8003be <led_value+0x1>
+    13b8:	80 93 bd 03 	sts	0x03BD, r24	; 0x8003bd <led_value>
+
+    screen = SCREEN_LED_RUN;
+    13bc:	f0 92 c4 03 	sts	0x03C4, r15	; 0x8003c4 <screen+0x1>
+    13c0:	e0 92 c3 03 	sts	0x03C3, r14	; 0x8003c3 <screen>
+    lcd_clear();
+    13c4:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+    write_row(0, led_modes[active_led_mode]);
+    13c8:	e0 91 bf 03 	lds	r30, 0x03BF	; 0x8003bf <active_led_mode>
+    13cc:	f0 e0       	ldi	r31, 0x00	; 0
+    13ce:	ee 0f       	add	r30, r30
+    13d0:	ff 1f       	adc	r31, r31
+    13d2:	e8 51       	subi	r30, 0x18	; 24
+    13d4:	fe 4f       	sbci	r31, 0xFE	; 254
+    13d6:	60 81       	ld	r22, Z
+    13d8:	71 81       	ldd	r23, Z+1	; 0x01
+    13da:	80 e0       	ldi	r24, 0x00	; 0
+    13dc:	0e 94 67 00 	call	0xce	; 0xce <write_row>
+    13e0:	8d cf       	rjmp	.-230    	; 0x12fc <main+0x17a>
+}
+
+static void start_led_mode(void)
+{
+    active_led_mode = led_selection;
+    led_value = (active_led_mode == 1 || active_led_mode == 3) ? 9999 : 0;
+    13e2:	90 e0       	ldi	r25, 0x00	; 0
+    13e4:	80 e0       	ldi	r24, 0x00	; 0
+    13e6:	e6 cf       	rjmp	.-52     	; 0x13b4 <main+0x232>
+    if (led_value != before) display_led_value();
+}
+static void apply_relay_action(void)
+{
+    // Existing relay module/driver behavior, including its buzzer linkage.
+    if (relay_selection == 0) relay_on(0);
+    13e8:	80 91 c0 03 	lds	r24, 0x03C0	; 0x8003c0 <relay_selection>
+    13ec:	81 11       	cpse	r24, r1
+    13ee:	19 c0       	rjmp	.+50     	; 0x1422 <main+0x2a0>
+    13f0:	0e 94 4c 07 	call	0xe98	; 0xe98 <relay_on>
+    else relay_off(0);
+    screen = SCREEN_RELAY_STATUS;
+    13f4:	90 92 c4 03 	sts	0x03C4, r9	; 0x8003c4 <screen+0x1>
+    13f8:	80 92 c3 03 	sts	0x03C3, r8	; 0x8003c3 <screen>
+    lcd_clear();
+    13fc:	0e 94 e2 01 	call	0x3c4	; 0x3c4 <lcd_clear>
+    write_row(0, "RELAY 1");
+    1400:	6d e7       	ldi	r22, 0x7D	; 125
+    1402:	73 e0       	ldi	r23, 0x03	; 3
+    1404:	80 e0       	ldi	r24, 0x00	; 0
+    1406:	0e 94 67 00 	call	0xce	; 0xce <write_row>
+    write_row(1, (relay_get_state() & RELAY_0_BIT) ? "STATE: ON" : "STATE: OFF");
+    140a:	0e 94 48 07 	call	0xe90	; 0xe90 <relay_get_state>
+    140e:	64 ec       	ldi	r22, 0xC4	; 196
+    1410:	72 e0       	ldi	r23, 0x02	; 2
+    1412:	80 fd       	sbrc	r24, 0
+    1414:	02 c0       	rjmp	.+4      	; 0x141a <main+0x298>
+    1416:	6e ec       	ldi	r22, 0xCE	; 206
+    1418:	72 e0       	ldi	r23, 0x02	; 2
+    141a:	81 e0       	ldi	r24, 0x01	; 1
+    141c:	0e 94 67 00 	call	0xce	; 0xce <write_row>
+    1420:	e2 ce       	rjmp	.-572    	; 0x11e6 <main+0x64>
+}
+static void apply_relay_action(void)
+{
+    // Existing relay module/driver behavior, including its buzzer linkage.
+    if (relay_selection == 0) relay_on(0);
+    else relay_off(0);
+    1422:	80 e0       	ldi	r24, 0x00	; 0
+    1424:	0e 94 63 07 	call	0xec6	; 0xec6 <relay_off>
+    1428:	e5 cf       	rjmp	.-54     	; 0x13f4 <main+0x272>
+
+0000142a <__udivmodqi4>:
+    142a:	99 1b       	sub	r25, r25
+    142c:	79 e0       	ldi	r23, 0x09	; 9
+    142e:	04 c0       	rjmp	.+8      	; 0x1438 <__udivmodqi4_ep>
+
+00001430 <__udivmodqi4_loop>:
+    1430:	99 1f       	adc	r25, r25
+    1432:	96 17       	cp	r25, r22
+    1434:	08 f0       	brcs	.+2      	; 0x1438 <__udivmodqi4_ep>
+    1436:	96 1b       	sub	r25, r22
+
+00001438 <__udivmodqi4_ep>:
+    1438:	88 1f       	adc	r24, r24
+    143a:	7a 95       	dec	r23
+    143c:	c9 f7       	brne	.-14     	; 0x1430 <__udivmodqi4_loop>
+    143e:	80 95       	com	r24
+    1440:	08 95       	ret
+
+00001442 <__udivmodhi4>:
+    1442:	aa 1b       	sub	r26, r26
+    1444:	bb 1b       	sub	r27, r27
+    1446:	51 e1       	ldi	r21, 0x11	; 17
+    1448:	07 c0       	rjmp	.+14     	; 0x1458 <__udivmodhi4_ep>
+
+0000144a <__udivmodhi4_loop>:
+    144a:	aa 1f       	adc	r26, r26
+    144c:	bb 1f       	adc	r27, r27
+    144e:	a6 17       	cp	r26, r22
+    1450:	b7 07       	cpc	r27, r23
+    1452:	10 f0       	brcs	.+4      	; 0x1458 <__udivmodhi4_ep>
+    1454:	a6 1b       	sub	r26, r22
+    1456:	b7 0b       	sbc	r27, r23
+
+00001458 <__udivmodhi4_ep>:
+    1458:	88 1f       	adc	r24, r24
+    145a:	99 1f       	adc	r25, r25
+    145c:	5a 95       	dec	r21
+    145e:	a9 f7       	brne	.-22     	; 0x144a <__udivmodhi4_loop>
+    1460:	80 95       	com	r24
+    1462:	90 95       	com	r25
+    1464:	bc 01       	movw	r22, r24
+    1466:	cd 01       	movw	r24, r26
+    1468:	08 95       	ret
+
+0000146a <__udivmodsi4>:
+    146a:	a1 e2       	ldi	r26, 0x21	; 33
+    146c:	1a 2e       	mov	r1, r26
+    146e:	aa 1b       	sub	r26, r26
+    1470:	bb 1b       	sub	r27, r27
+    1472:	fd 01       	movw	r30, r26
+    1474:	0d c0       	rjmp	.+26     	; 0x1490 <__udivmodsi4_ep>
+
+00001476 <__udivmodsi4_loop>:
+    1476:	aa 1f       	adc	r26, r26
+    1478:	bb 1f       	adc	r27, r27
+    147a:	ee 1f       	adc	r30, r30
+    147c:	ff 1f       	adc	r31, r31
+    147e:	a2 17       	cp	r26, r18
+    1480:	b3 07       	cpc	r27, r19
+    1482:	e4 07       	cpc	r30, r20
+    1484:	f5 07       	cpc	r31, r21
+    1486:	20 f0       	brcs	.+8      	; 0x1490 <__udivmodsi4_ep>
+    1488:	a2 1b       	sub	r26, r18
+    148a:	b3 0b       	sbc	r27, r19
+    148c:	e4 0b       	sbc	r30, r20
+    148e:	f5 0b       	sbc	r31, r21
+
+00001490 <__udivmodsi4_ep>:
+    1490:	66 1f       	adc	r22, r22
+    1492:	77 1f       	adc	r23, r23
+    1494:	88 1f       	adc	r24, r24
+    1496:	99 1f       	adc	r25, r25
+    1498:	1a 94       	dec	r1
+    149a:	69 f7       	brne	.-38     	; 0x1476 <__udivmodsi4_loop>
+    149c:	60 95       	com	r22
+    149e:	70 95       	com	r23
+    14a0:	80 95       	com	r24
+    14a2:	90 95       	com	r25
+    14a4:	9b 01       	movw	r18, r22
+    14a6:	ac 01       	movw	r20, r24
+    14a8:	bd 01       	movw	r22, r26
+    14aa:	cf 01       	movw	r24, r30
+    14ac:	08 95       	ret
+
+000014ae <_exit>:
+    14ae:	f8 94       	cli
+
+000014b0 <__stop_program>:
+    14b0:	ff cf       	rjmp	.-2      	; 0x14b0 <__stop_program>

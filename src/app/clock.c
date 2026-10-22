@@ -61,14 +61,16 @@ void clock_tick_1s(void) {
 void clock_update_display(void) {
     ClockTime_t snapshot;
     clock_get_time(&snapshot);
-    // Decimal points on Digit 1 (Hours ones) and Digit 3 (Minutes ones):
-    // (1 << 1) | (1 << 3) = 0b00001010
-    seg7_set_dp_mask((1 << 1) | (1 << 3));
-
-    const uint8_t digits[SEG7_NUM_DIGITS] = {
-        snapshot.hours / 10, snapshot.hours % 10,
-        snapshot.minutes / 10, snapshot.minutes % 10,
-        snapshot.seconds / 10, snapshot.seconds % 10
-    };
+    // Right-align HH.MM.SS; leave the two extra leftmost positions blank.
+    const uint8_t offset = SEG7_NUM_DIGITS - 6;
+    seg7_set_dp_mask((1u << (offset + 1)) | (1u << (offset + 3)));
+    uint8_t digits[SEG7_NUM_DIGITS];
+    for (uint8_t i = 0; i < offset; i++) digits[i] = SEG7_BLANK;
+    digits[offset] = snapshot.hours / 10;
+    digits[offset + 1] = snapshot.hours % 10;
+    digits[offset + 2] = snapshot.minutes / 10;
+    digits[offset + 3] = snapshot.minutes % 10;
+    digits[offset + 4] = snapshot.seconds / 10;
+    digits[offset + 5] = snapshot.seconds % 10;
     seg7_set_array(digits);
 }

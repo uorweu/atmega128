@@ -4,5 +4,6 @@
 #error Host test headers must not be used for AVR firmware
 #endif
 #define ISR(vector) void vector(void)
+#define cli() ((void)0)
 #define sei() ((void)0)
 #endif

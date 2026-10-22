@@ -1,3 +1,183 @@
+## 2026-10-22: Nested linked-list menu modeled on ../exam_atmega128
+
+Implemented Menu/MenuItem with next/prev, child_menu, parent_menu, and action
+callbacks. menu.c defines DEVICE -> LED and RELAY -> relay 1..4 -> ON/OFF,
+owns navigation and list drawing, and invokes callbacks in existing device
+modules. Main now handles startup, welcome animation, and generic button
+dispatch through menu_up/down/enter/back. No application wrapper was added.
+
+Moved four LED actions and optional new-press input handling into 7SLED.c,
+and named relay ON/OFF action callbacks/status rendering into relay.c.
+The input callback preserves UP/DOWN manual counting while an action is open.
+All menu nodes use static storage. Back restores the parent's selected item.
+
+Preserved layout, scroll timing, count bounds, active-HIGH relay settings,
+relay-1 buzzer linkage, and shared-bus wiring. test.c remains a separate image.
+make and make test passed; sanitized host checks passed for linked topology,
+nesting, eight buttons/repeats, scrolling, back/exit, real LED and relay callbacks,
+clock/display scanning, and buzzer timing. Board testing is still required.
+Flash output/main.hex. See references/code_structure.md for the walkthrough.
+This supersedes the earlier structure experiments below.
+
+## 2026-10-22: Correct the refactor to compose existing device APIs in main.c
+
+User clarified that the program should remain understandable in main.c and use
+existing LCD/button/LED/relay functions, rather than hiding it behind a new
+application module. Removed application.c/h, welcome.c/h, and led_modes.c/h
+introduced in the previous step. Main now owns startup, screens, animation,
+navigation, and action choices and directly calls the existing device APIs.
+
+menu.c now only supplies reusable menu_draw_list(title, items, count, selection).
+Added seg7_set_decimal(number, width) to the existing 7SLED driver for zero-padded
+right-aligned display with unused digits blank. Kept lcd_write_line in the LCD
+driver. Hardware definitions, controls, timing, and relay behavior are retained.
+This entry supersedes the immediately following refactor description.
+See references/code_structure.md for the corrected walkthrough.
+
+## 2026-10-22: Modular structure for the simpler main project
+
+main.c now only calls application_init() and application_update(). Moved startup
+and the 10 ms scheduler into application.c, current screen/navigation logic into
+menu.c, welcome animation into welcome.c, and four LED operations into
+led_modes.c. Added reusable lcd_write_line() for clipped/padded LCD lines.
+The older linked-list clock menu is no longer the active menu implementation.
+Saved the pre-refactor main/menu sources in tmp/*before_modular*.saved.
+
+Controls, LCD layout, scroll timing, manual counter bounds, four active-HIGH
+relay channels, shared-bus settings, and relay-1 buzzer linkage are preserved.
+test.c remains separate; its build excludes application.c to avoid two Timer1
+handlers. See references/code_structure.md for a walkthrough and edit locations.
+
+make and make test passed. Host checks with address/undefined-behavior
+sanitizers passed for menu/buttons/welcome/LED/four relays, clock/display, and
+relay/buzzer behavior. Hardware has not been retested by this refactor.
+Flash output/main.hex for the current main project.
+
+## 2026-10-22: Four independent relays exposed in the simpler main menu
+
+Updated src/main/main.c: DEVICE -> RELAY lists relay 1 through relay 4.
+Each selection opens its own ON/OFF submenu and status screen, mapped
+to Q0..Q3. LEFT returns one level and BTN1 exits to welcome; navigation
+does not switch relay outputs. Active-HIGH driver configuration is retained.
+The existing relay-1 buzzer linkage is unchanged. test.c remains separate.
+
+make succeeded. A host UI check enabled all four channels in turn and
+disabled them individually, verifying preservation of other relay states,
+the fourth scrolling entry, status labels, back/exit, and LED/welcome
+regressions. Flash output/main.hex for the current main project.
+## 2026-10-22: Simpler PROJECT 01 application is now the main project
+
+User confirms the simpler application is the main project. Promoted the
+current src/test/test.c implementation into src/main/main.c. Future main
+project changes belong in src/main/main.c; use make and output/main.hex.
+Kept test.c available separately and saved the previous main source in
+tmp/legacy_main_before_simple_project.c.saved.
+
+Retained vertical menus, instruction-free LCD layout, welcome member
+scrolling at 250 ms/step with 1-second end pauses, four-digit manual LED
+modes, relay ON/OFF and the shared active-HIGH relay configuration.
+The old clock/full-menu application is no longer the main entry point.
+## 2026-10-22: Four relay channels confirmed active HIGH
+
+User confirms the current relay hardware is high-trigger. Set the default
+RELAY_ACTIVE_LOW_MASK to 0x00 for Q0..Q3: physical LOW is OFF, HIGH is ON.
+The logical relay API remains 1 = ON. relay_init therefore initializes
+all four relay control outputs LOW. This configuration applies to both
+main and test builds. No menu, union representation, or buzzer behavior
+changed in this step. This supersedes earlier active-LOW module defaults.
+## 2026-10-21: Infer swapped a/b segment connections after sync fix
+
+User reports digit selection/sync fixed, but 1 lights a,c; 4 lights a,f,g,c;
+6 lights b,c,d,e,f,g; other numerical glyphs are normal. This consistently
+indicates the physical a and b connections are swapped relative to the
+previous table. The report for 5 repeats g, so its exact segment list is
+ambiguous. Swapped only segment-map bits 6/7: Q0..Q7 now represent
+dp,g,f,e,d,c,a,b. No digit-select, button, LCD or relay behavior changed.
+Updated all 16 glyphs consistently, including hexadecimal characters.
+This inference still needs a board check of 1,4,5,6; it does not establish
+the unidentified synchronization wiring fix. Main firmware is the image
+to flash; the standalone static test remains available separately.
+## 2026-10-21: Eight-digit display and reversed transistor order
+
+Updated the driver for eight physical digits. Logical display positions
+remain left-to-right, while digit-select outputs run Q7 through Q0.
+Segment mapping remains dp,g,f,e,d,c,b,a; CSEL3 is segment data and CSEL4
+is digit selection. Timer0 now uses 1 ms slots (125 Hz per digit) with
+1000 interrupts per software-clock second. HH.MM.SS is right-aligned on
+six digits, with two leading blanks; clock-adjust blinking and decimal
+points use the same offset. Mode 4 displays 88888888 and tests all DPs.
+
+Both make test and make succeeded. Host clock/display regression passed
+for eight scan positions, physical select order, glyphs, clock rollover,
+blanking and number placement; menu/button regression passed. Physical
+eight-digit operation still needs confirmation. This supersedes earlier
+six-digit / Q0-leftmost / 500 Hz scan descriptions.
+## 2026-10-21: Indicator LED affects button signal reading
+
+User-observed hardware behavior: attaching a 5 mm indicator LED directly
+to a button signal input to observe whether the button is active prevents
+that input from being read correctly through the button latch/data bus.
+
+Do not use a directly connected LED as a logic probe on these button
+signal nodes. An LED can load or clamp the node, changing its logic level;
+the exact attachment point, LED wiring/polarity, and presence/value of a
+series resistor were not recorded, so the electrical cause is not confirmed.
+A series resistor is essential for an LED but does not by itself establish
+that an indicator will avoid loading this signal. Prefer a high-impedance
+multimeter/scope or a buffered indicator when checking button levels.
+
+Record the signal behavior without the indicator attached before changing
+firmware or diagnosing the latch as faulty. This observation does not
+establish that all previously reported button faults have been resolved.
+## 2026-10-19: Restore phone-style melody at user request
+
+Restored the original repeating rising 880/1175/1568 Hz alarm with pauses,
+replacing the continuous-tone diagnostic. LCD shows ALARM ON. Relay 1
+still supplies steady power; Q4 carries audio. This is a phone-style
+approximation, not an exact iPhone recording. The user requested restoration
+without explicitly confirming the outcome of the last continuous-tone test.
+Earlier silence remains unverified on hardware. Regression checks melody
+pitch changes, rests, repeat timing, stop/restart and shared latch outputs.
+This section supersedes the continuous-tone description below.
+## 2026-10-19: Restore original continuous buzzer diagnostic
+
+User reports both alarm versions remained silent and requests the simple
+sound that worked previously. Restored the original Timer2 continuous-tone
+driver: nominal 2 kHz (OCR2=62, approximately 1984 Hz), 20 ms settling,
+no note table or gaps. Relay 1 ON starts it; OFF/all-off stops it. The LCD
+shows TONE ON. Q0 relay control and Q4 buzzer wiring are unchanged.
+This supersedes alarm descriptions below while hardware is checked.
+Host regression checks sustained toggling for 20,000 interrupts, relay
+preservation, settling, and stopping. Physical buzzer result is pending.
+## 2026-10-19: Silent melody report; retain working carrier
+
+User reports the original continuous tone worked, but the rising-note alarm
+was silent while relay 1 still clicked. The cause is not yet established.
+Replaced all 880/1175/1568 Hz notes with the previously working nominal
+2 kHz carrier (OCR2=62 at 16 MHz, approximately 1984 Hz). Retained the alarm
+cadence, quiet gaps, menu controls, and steady relay power. This is a pulsed
+alarm, not an exact iPhone melody. Hardware confirmation is still needed.
+Regression now explicitly checks OCR2=62 on every audible alarm burst.
+This supersedes the rising-pitch description below.
+## 2026-10-18: Relay 1 repeating phone-style alarm
+
+Relay 1 now starts an original rising-note alarm on U13 Q4 after about
+20 ms of settling. Three 880/1175/1568 Hz phrases repeat with a long pause;
+the whole cycle is about 2.84 seconds. This approximates a phone alarm on a
+passive buzzer; it does not reproduce an exact iPhone recording.
+Q0 keeps the mechanical relay continuously enabled. Only Q4 changes pitch.
+For the active-low buzzer module, quiet gaps hold Q4 HIGH while powered.
+Relay 1 OFF / ALL DEVICES OFF disables Timer2 and holds Q4 LOW while the
+relay removes module power. Turning ON again restarts the first phrase.
+The alarm continues outside the relay LCD screen; LCD now shows ALARM ON.
+Notes/durations are configured in alarm_pattern in src/app/relay.c.
+
+Validation: make test and make succeeded. Host tests passed for a full
+alarm cycle and its duration, quiet gaps, restart, stop during note/rest,
+other relay/reserved-bit preservation, mixed relay polarity, menu buttons,
+and clock/display regression. Physical sound quality remains to be checked
+on the user's buzzer. This section supersedes the earlier continuous-tone
+description; wiring remains the same.
 # ATmega128A LCD debugging notes
 
 Date: 2026-10-17
@@ -7,7 +187,39 @@ Separate comparison: [Real board versus Proteus](references/real_board_vs_proteu
 
 ## Latest status — 2026-10-18 (supersedes historical sections below)
 
-### Current status: physical glyphs confirmed, clock/menu restored
+### Current change: four relay-device screens and latch-Q4 buzzer tone
+
+At the user's request, both firmware targets now use the real relay driver
+at CSEL5. The previous test relay stubs were moved to
+`tmp/retired_relay_test_outputs.c.saved` and excluded from the build.
+The menu offers relays 1–4 individually (U13 Q0..Q3), plus ALL DEVICES OFF.
+GO toggles, UP turns ON, DOWN turns OFF, LEFT returns. Entering a screen
+and leaving it do not change outputs. BTN1 leaves to welcome and retains
+states; use the all-off item to stop all devices. No periodic relay toggling.
+
+Relay 1 powers the passive buzzer module via COM/NO; its I/O connects to
+U13 Q4 (pin 15), NOT MCU PG4. Default all four relay inputs are active LOW;
+`RELAY_ACTIVE_LOW_MASK` permits mixed/bare-transistor active-HIGH channels.
+A single retained eight-bit state owns Q0..Q7; all mutations are atomic.
+Relay changes preserve Q4 phase; Timer2 changes only Q4. Q5..Q7 remain
+reserved and are preserved by both paths.
+
+On relay 1 ON, Timer2 waits approximately 20 ms, then generates nominal
+2 kHz / 50% duty on Q4 (about 1984 Hz with the rounded 16 MHz /64 divider).
+It does not PWM the relay coil. OFF stops Timer2 and holds Q4 LOW while
+relay 1 removes buzzer VCC, to avoid a HIGH signal into an unpowered module.
+This assumes relay contacts actually switch module VCC and its signal input
+accepts 5 V; an always-powered active buzzer requires different idle behavior.
+The exact buzzer module model/ratings have not been independently verified.
+Timer0 scanning/clock and Timer1 menu polling are unchanged. Relays are
+initialized OFF before LCD delays; reset transients before initialization
+are not claimed solved. LCD screens show commands, not contact feedback.
+
+Host checks cover shared-byte preservation, delayed tone/start/stop,
+active-low and mixed-polarity states, held GO, individual menu control,
+all-off, clock scanning/rollover, and LCD bounds. AVR test/main builds pass.
+Physical relay actuation and audible tone await the user's board test.
+### Previous status: physical glyphs confirmed, clock/menu restored
 
 The user confirmed that every numeral now displays correctly after the
 final a/f lookup-table correction, and requested restoration of the project.
